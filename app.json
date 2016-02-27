@@ -1,0 +1,94 @@
+{
+  "id": "com.gps-trace",
+  "version": "0.0.1",
+  "compatibility": "*",
+  "name": {
+    "en": "GPS-Trace",
+    "nl": "GPS-Trace"
+  },
+  "description":{
+     "en":"Track your car and phones with GPS-Trace.com",
+     "nl":"Volg je auto en telefoons met GPS-Trace.com"
+  },
+  "author":{
+     "name":"Erik van Dongen",
+     "website":"http://github.com/irritanterik/"
+  },
+  "category":"internet",
+  "images":{
+     "large":"./assets/images/large.jpg",
+     "small":"./assets/images/small.jpg"
+  },
+  "drivers":[
+    {
+      "id":"car",
+      "name":{
+        "en":"Car",
+        "nl":"Auto"
+      },
+      "images":{
+        "large":"drivers/car/assets/images/large.jpg",
+        "small":"drivers/car/assets/images/small.jpg"
+      },
+      "class":"other",
+      "capabilities":["other"],
+      "settings":[
+        {
+          "type":"group",
+          "label":{
+            "en":"General settings",
+            "nl":"Instellingen"
+          },
+          "children":[
+            {
+              "id":"text1",
+              "type":"text",
+              "label":{
+                "en":"Text label 1",
+                "nl":"Tekst label 1"
+              },
+              "value":"Text value 1"
+            }
+          ]
+        }
+      ],
+      "pair":[
+        {
+          "id":"index"
+        },
+        {
+          "id":"list_cars",
+          "template":"list_devices",
+          "navigation":{
+            "next":"add_cars"
+          }
+        },
+        {
+          "id":"add_cars",
+          "template":"add_devices"
+        }
+      ]
+    }
+  ],
+  "flow": {
+    "triggers":[
+      {
+        "id":"car_moved",
+        "title":{
+          "en":"Car moved"
+        },
+        "tokens":[
+          {
+            "name":"address",
+            "title":{
+              "en":"address"
+            },
+            "example":{
+              "en":"Kalverstraat Amsterdam"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
