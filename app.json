@@ -21,17 +21,17 @@
   },
   "drivers":[
     {
-      "id":"car",
+      "id":"tracker",
       "name":{
-        "en":"Car",
-        "nl":"Auto"
+        "en":"Tracker",
+        "nl":"Tracker"
       },
       "images":{
-        "large":"drivers/car/assets/images/large.jpg",
-        "small":"drivers/car/assets/images/small.jpg"
+        "large":"drivers/tracker/assets/images/large.jpg",
+        "small":"drivers/tracker/assets/images/small.jpg"
       },
       "class":"other",
-      "capabilities":["other"],
+      "capabilities":["position"],
       "settings":[
         {
           "type":"group",
@@ -41,30 +41,57 @@
           },
           "children":[
             {
-              "id":"text1",
-              "type":"text",
+              "id":"intervalPolling",
+              "type":"number",
               "label":{
-                "en":"Text label 1",
-                "nl":"Tekst label 1"
+                "en":"Polling interval (seconds)",
+                "nl":"Poll interval (seconden)"
               },
-              "value":"Text value 1"
+              "value": 10
+            },
+            {
+              "id":"retriggerRestrictTime",
+              "type":"number",
+              "label":{
+                "en":"Minimum time between triggers (seconds)",
+                "nl":"Minimumtijd tussen triggers (seconden)"
+              },
+              "value": 1
+            },
+            {
+              "id":"retriggerRestrictDistance",
+              "type":"number",
+              "label":{
+                "en":"Minimum distance travelled between triggers (meters)",
+                "nl":"Minimaal afgelegde afstand tussen triggers (meter)"
+              },
+              "value": 1
+            },
+            {
+              "id":"stopedMovingTimeout",
+              "type":"number",
+              "label":{
+                "en":"Minimal time between last new position and trigger end movement (seconds)",
+                "nl":"Minimumtijd tussen laatst maal ontvangen positie en trigger einde beweging (seconden)"
+              },
+              "value": 120
             }
           ]
         }
       ],
       "pair":[
         {
-          "id":"index"
+          "id":"start"
         },
         {
-          "id":"list_cars",
+          "id":"list_devices",
           "template":"list_devices",
           "navigation":{
-            "next":"add_cars"
+            "next":"add_tracker"
           }
         },
         {
-          "id":"add_cars",
+          "id":"add_tracker",
           "template":"add_devices"
         }
       ]
@@ -73,18 +100,28 @@
   "flow": {
     "triggers":[
       {
-        "id":"car_moved",
+        "id":"tracker_moved",
         "title":{
-          "en":"Car moved"
+          "en":"Position changed",
+          "nl":"Locatie gewijzigd"
         },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter":"driver_id=tracker"
+          }
+        ],
         "tokens":[
           {
             "name":"address",
             "title":{
-              "en":"address"
+              "en":"address",
+              "nl":"adres"
             },
             "example":{
-              "en":"Kalverstraat Amsterdam"
+              "en":"Piccadilly Circus, London",
+              "nl":"Kalverstraat in Amsterdam"
             }
           }
         ]

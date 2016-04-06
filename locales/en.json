@@ -1,0 +1,47 @@
+{
+	"settings": {
+		"title": "GPS-Trace settings",
+		"intro": "Before you can add your tracked devices you need to enter your username and password for <a href=http://www.gps-trace.com>http://www.gps-trace.com</a> first. These settings are stored locally on your Homey.",
+		"instruction": "Create an account at gps-trace.com first if you don't have it yet.",
+		"account": {
+			"title": "GPS-Trace account settings",
+			"fieldUsername": "Username",
+			"fieldPassword": "Password",
+			"fieldPolling": "Enable polling",
+			"buttonSave": "Save",
+			"buttonClear": "Remove account settings",
+			"messages": {
+				"busyClearing": "Clearing account settings from Homey...",
+				"busySaving": "Account settings valid, saving to Homey...",
+				"busyValidation": "Validation account settings...",
+				"confirmClearAccount": "Are you sure you want to clear the account? Tracking will stop and configured devices will stop working.",
+				"errorValidation": {
+					"1": "No username set",
+					"2": "No password set",
+					"10": "Invalid username or password",
+					"11": "Something went wrong contacting GPS-Trace.com"
+				},
+				"errorSaving": "Error saving account settings to Homey",
+				"successClearing": "Account settings cleared successfully",
+				"successSaving": "Account settings saved successfully"
+			}
+		},
+		"geofences": {
+			"title": "Geofences",
+			"intro": "Nothing here yet"
+		}
+	},
+	"pair": {
+		"start": {
+			"title": "Add tracking device",
+      "intro": "If a valid account is configured in the app settings sections of Homey, the trackers in your GPS-Trace account will be listed.",
+			"buttonClose": "Close",
+			"messages": {
+				"busyValidation": "Validation account settings...",
+				"busyGetTrackers": "Get trackers from account...",
+				"errorNoSettings": "No account configured in the app settings section.",
+				"errorInvalidSettings": "Invalid account configured in the app settings sections."
+			}
+		}
+  }
+}

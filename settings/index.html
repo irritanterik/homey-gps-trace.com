@@ -1,0 +1,150 @@
+<!doctype html>
+<html>
+  <head>
+    <script type="text/javascript" src="/manager/webserver/assets/js/jquery.js"></script>
+    <style>
+    /* based on http://isabelcastillo.com/error-info-messages-css */
+    .busy, .info, .success, .warning, .error {
+      margin: 10px 0px;
+      padding:0px;
+    }
+    .busy     {color: #00529B;background-color: #BDE5F8;}
+    .info     {color: #00529B;background-color: #BDE5F8;}
+    .success  {color: #4F8A10;background-color: #DFF2BF;}
+    .warning  {color: #9F6000;background-color: #FEEFB3;}
+    .error    {color: #D8000C;background-color: #FFBABA;}
+    .busy i, .info i, .success i, .warning i, .error i {
+      margin:5px 7px;
+      vertical-align:middle;
+    }
+    .form_label {
+      width: 150px !important;
+      margin-right: 20px;
+      display: inherit;
+    }
+    .form_input {
+      width: 250px !important;
+      display: inherit;
+    }
+    select {
+      padding: .5em .75em;
+      vertical-align: middle;
+      font-size: 12px;
+      font-family: inherit;
+      font-weight: inherit;
+      border: 1px solid #aaa;
+      border-radius: 2px;
+      width:270px !important;
+    }
+   </style>
+  </head>
+  <body>
+    <h1 data-i18n="settings.title"></h1>
+    <p data-i18n="settings.intro"></p>
+    <p data-i18n="settings.instruction"></p>
+    <fieldset>
+      <legend data-i18n="settings.account.title"></legend>
+      <div class="field row">
+        <label class="form_label" for="gpsUsername" data-i18n="settings.account.fieldUsername"></label>
+        <input class="form_input" id="gpsUsername" type="text" value="" />
+      </div>
+      <div class="field row">
+        <label class="form_label" for="gpsPassword" data-i18n="settings.account.fieldPassword"></label>
+        <input class="form_input" id="gpsPassword" type="password" />
+      </div>
+      <div>
+        <input id="gpsPolling" type="checkbox" value="polling" />
+        <label for="gpsPolling" data-i18n="settings.account.fieldPolling"></label>
+      </div>
+      <div id="busy" class="busy"><i class="fa fa-cog fa-spin fa-2x fa-fw"></i><span>..</span></div>
+      <div id="error" class="error"><i class="fa fa-times-circle fa-2x fa-fw"></i><span>..</span></div>
+      <div id="success" class="success"><i class="fa fa-check fa-2x fa-fw"></i><span>..</span></div>
+      <button id="saveGpsAccount" class="right" onclick="saveGpsAccount()" data-i18n="settings.account.buttonSave"></button>
+      <button id="clearGpsAccount" class="right" onclick="clearGpsAccount()" data-i18n="settings.account.buttonClear"></button>
+    </fieldset>
+    <fieldset>
+      <legend data-i18n="settings.geofences.title"></legend>
+      <p data-i18n="settings.geofences.intro"></p>
+    </fieldset>
+    <script type="text/javascript">
+      function onHomeyReady(){
+        clearBusy()
+        clearError()
+        clearSuccess()
+        Homey.get('gpsaccount', function(err, currentGpsAccount) {
+          if (currentGpsAccount != null) {
+            $("#gpsUsername").val(currentGpsAccount['user'])
+            $("#gpsPassword").val(currentGpsAccount['password'])
+            $("#gpsPolling").prop('checked', currentGpsAccount['polling'])
+          }
+          Homey.ready()
+        })
+      }
+
+      function clearGpsAccount() {
+        Homey.confirm(__("settings.account.messages.confirmClearAccount"), 'warning', function(err, result) {
+          if (result) {
+            showBusy(__("settings.account.messages.busyClearing"))
+            Homey.set('gpsaccount', null, function(error, result) {
+              $("#gpsUsername").val('')
+              $("#gpsPassword").val('')
+              $("#gpsPolling").prop('checked', true)
+              showSuccess(__("settings.account.messages.successClearing"), 3000)
+            })
+          }
+        })
+      }
+
+      function saveGpsAccount() {
+        currentGpsAccount = {
+          user: $("#gpsUsername").val(),
+          password: $("#gpsPassword").val(),
+          polling: $("#gpsPolling").prop('checked')
+        }
+        showBusy(__("settings.account.messages.busyValidation"))
+        $("#saveGpsAccount").prop("disabled",true)
+        Homey.api('GET', '/validate/account?' + $.param(currentGpsAccount), function(error, result){
+          if(error) {
+            $("#saveGpsAccount").prop("disabled",false)
+            return showError(__("settings.account.messages.errorValidation." + error))
+          }
+          showBusy(__("settings.account.messages.busySaving"))
+          setTimeout(function(){
+            Homey.set('gpsaccount', currentGpsAccount, function(error, settings) {
+              $("#saveGpsAccount").prop("disabled",false)
+              if (error) {return showError(__("settings.account.messages.errorSaving"))}
+              showSuccess(__("settings.account.messages.successSaving"), 3000)
+            })
+          }, 2000)
+        })
+      }
+
+      function clearBusy() { $("#busy").hide() }
+      function showBusy(message, showTime) {
+        clearError()
+        clearSuccess()
+        $("#busy span").html(message)
+        $("#busy").show()
+        if (showTime) $("#busy").delay(showTime).fadeOut()
+      }
+
+      function clearError() { $("#error").hide() }
+      function showError(message, showTime) {
+        clearBusy()
+        clearSuccess()
+        $("#error span").html(message)
+        $("#error").show()
+        if (showTime) $("#error").delay(showTime).fadeOut()
+      }
+
+      function clearSuccess() { $("#success").hide() }
+      function showSuccess(message, showTime) {
+        clearBusy()
+        clearError()
+        $("#success span").html(message)
+        $("#success").show()
+        if (showTime) $("#success").delay(showTime).fadeOut()
+      }
+    </script>
+  </body>
+</html>
