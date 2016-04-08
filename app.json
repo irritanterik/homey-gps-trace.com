@@ -1,6 +1,6 @@
 {
   "id": "com.gps-trace",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "compatibility": "*",
   "name": {
     "en": "GPS-Trace",
@@ -15,6 +15,9 @@
      "website":"http://github.com/irritanterik/"
   },
   "category":"internet",
+  "permissions":[
+    "homey:manager:speech-output"
+  ],
   "images":{
      "large":"./assets/images/large.jpg",
      "small":"./assets/images/small.jpg"
@@ -123,6 +126,36 @@
               "en":"Piccadilly Circus, London",
               "nl":"Kalverstraat in Amsterdam"
             }
+          }
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id":"say_address",
+        "title":{
+          "en":"Say address",
+          "nl":"Vertel adres"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter":"driver_id=tracker"
+          }
+        ]
+      },
+      {
+        "id":"get_position",
+        "title":{
+          "en":"Update tracker",
+          "nl":"Bijwerken tracker"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter":"driver_id=tracker"
           }
         ]
       }

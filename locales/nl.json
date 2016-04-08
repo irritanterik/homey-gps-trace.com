@@ -1,4 +1,8 @@
 {
+	"speech": {
+		"placeCityConjunction": " in ",
+		"positionUnknown": "De locatie is onbekend."
+	},
 	"settings": {
 		"title": "GPS-Trace instellingen",
 		"intro": "Voordat er te volgen voertuigen of personen kunnen worden toegevoegd moet hier een geldige gebruikersnaam en wachtwoord worden opgegeven voor <a href=http://www.gps-trace.com>http://www.gps-trace.com</a>. Deze instellingen worden op je Homey opgeslagen.",
@@ -8,6 +12,7 @@
 			"fieldUsername": "Gebruikersnaam",
 			"fieldPassword": "Wachtwoord",
 			"fieldPolling": "Inschakelen polling",
+			"fieldDebug": "Inschakelen debug log",
 			"buttonSave": "Opslaan",
 			"buttonClear": "Verwijderen account instellingen",
 			"messages": {
@@ -29,6 +34,11 @@
 		"geofences": {
 			"title": "Geofences",
 			"intro": "Nog niet beschikbaar"
+		},
+		"debug": {
+			"title": "Logging",
+			"thDateTime": "Datum en tijd",
+			"thMessage": "Bericht"
 		}
 	},
 	"pair": {

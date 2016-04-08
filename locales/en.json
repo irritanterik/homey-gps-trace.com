@@ -1,4 +1,8 @@
 {
+	"speech": {
+		"placeCityConjunction": ", ",
+		"positionUnknown": "The location is unknown."
+	},
 	"settings": {
 		"title": "GPS-Trace settings",
 		"intro": "Before you can add your tracked devices you need to enter your username and password for <a href=http://www.gps-trace.com>http://www.gps-trace.com</a> first. These settings are stored locally on your Homey.",
@@ -8,6 +12,7 @@
 			"fieldUsername": "Username",
 			"fieldPassword": "Password",
 			"fieldPolling": "Enable polling",
+			"fieldDebug": "Enable debug logging",
 			"buttonSave": "Save",
 			"buttonClear": "Remove account settings",
 			"messages": {
@@ -29,6 +34,11 @@
 		"geofences": {
 			"title": "Geofences",
 			"intro": "Nothing here yet"
+		},
+		"debug": {
+			"title": "Logging",
+			"thDateTime": "Date and time",
+			"thMessage": "Message"
 		}
 	},
 	"pair": {

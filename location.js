@@ -60,7 +60,20 @@ Location.prototype.getItems = function(callback) {
 	})
 } // End of Location.prototype.getItems
 
-Location.prototype.getItemType
+//Location.prototype.getItemType
+
+Location.prototype.getAddressForItem = function(itemId, callback) {
+	var self = this
+	checkActiveSession(self, function(){
+		getPosition(itemId, self.activeSessionId, function(error, position) {
+			if(error) {self.emit('error', error); return callback(error)}
+			getAddress(position, self.userId, function(error, address){
+				if(error) {self.emit('error', error); return callback(error)}
+				return callback(null, address)
+			})
+		})
+	})
+} // End of Location.prototype.getAddressForItem
 
 Location.prototype.getPositionForItem = function(itemId, callback) {
 	var self = this
@@ -239,25 +252,25 @@ function getAddress(position, userId, callback){
 		headers: {'User-Agent': 'Homey Gps Tracking App'},
 		protocol: 'http:'
 	}
-	var wialonOptions = {
-		uri: 'http://geocode-maps.wialon.com/trc-api.wialon.com/gis_geocode',
-		query: {coords: JSON.stringify([{lon: position.x, lat: position.y}]),
-			      dist_from_unit: 1, flags: 1174405120, uid: userId},
-		protocol: 'http:'
-	}
+	// var wialonOptions = {
+	// 	uri: 'http://geocode-maps.wialon.com/trc-api.wialon.com/gis_geocode',
+	// 	query: {coords: JSON.stringify([{lon: position.x, lat: position.y}]),
+	// 		      dist_from_unit: 1, flags: 1174405120, uid: userId},
+	// 	protocol: 'http:'
+	// }
 
 	http.json(osmOptions).then(function(result){
-		callback(null, result.address)
+		return callback(null, result.address)
 	}).catch(function(reason){
-		http.json(wialonOptions).then(function(result){
-			if (result.error) {
-				callback(apiError[result.error])
-			} else {
-				callback(null, result[0])
-			}
-		}).catch(function(reason){
-			callback(reason)
-		})
+		// http.json(wialonOptions).then(function(result){
+		// 	if (result.error) {
+		// 		return callback(apiError[result.error])
+		// 	} else {
+		// 		return callback(null, result[0])
+		// 	}
+		// }).catch(function(reason){
+			return callback(reason)
+		// })
 	})
 } // end getAddress function
 

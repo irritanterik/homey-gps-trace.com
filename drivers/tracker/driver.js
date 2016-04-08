@@ -2,7 +2,9 @@
 
 var Location = require('../../../location.js')
 var tracking = null
-var trackers = []
+var trackers = {}
+var debugSetting = true
+var debugLog = []
 
 // TODO: move to helper
 function UnixEpochToTimeFormatter(epoch) {
@@ -18,16 +20,37 @@ function first(obj) {
   for (var a in obj) return a;
 }
 
+// TODO: move to helper
+function GpsDebugLog(message, data) {
+	if (!debugSetting) return
+	if (!debugLog) debugLog = []
+	if (!data) data = null
+
+	// Push new event, remove items over 30 and save new array
+	debugLog.push({datetime: new Date(), message:message, data:data});
+	if (debugLog.length > 30) debugLog.splice(0, 1);
+	Homey.manager('settings').set('gpslog', debugLog);
+	if (data == null) {
+		Homey.log(EpochToTimeFormatter(), message)
+	} else {
+		Homey.log(EpochToTimeFormatter(), message, data)
+	}
+}
+
 // TODO: move to library
 function initiateTracking() {
-	Homey.log('######### GPS TRACKING ## initiateTracking #########################')
+	debugLog = Homey.manager('settings').get('gpslog')
+	debugSetting = true
+
+	GpsDebugLog('######### GPS TRACKING ## initiateTracking #########################')
 	if (tracking) tracking.stopTracking()
 	tracking = null
 
 	var settings = Homey.manager('settings').get('gpsaccount')
-	if (!settings) return console.log('  no settings!')
-	if (!trackers.length) return console.log('  no devices to track!')
-	if (!settings.polling) return console.log('  polling diabled in settings')
+	if (!settings) return GpsDebugLog('  no settings!')
+	if (!settings.debug) debugSetting = false
+	if (!Object.keys(trackers).length) return GpsDebugLog('  no devices to track!')
+	if (!settings.polling) return GpsDebugLog('  polling disabled in settings')
 
 	tracking = new Location({
 		user: settings.user,
@@ -42,9 +65,13 @@ function initiateTracking() {
 		// var place = first(position.address)
 		var place = position.address.cycleway || position.address.road || position.address.retail || position.address.footway || position.address.address29
 		var city = position.address.town || position.address.city
-		Homey.log(UnixEpochToTimeFormatter(position.t), item, 'firstPosition:',place, city);
+		GpsDebugLog('firstPosition', {item: item, place: place, city: city})
+
+		trackers[item].place = place
+		trackers[item].city = city
+
 		if (place == null || city == null) {
-			Homey.log(position.address)
+			GpsDebugLog('no address translation found', position.address)
 		}
 
 	})
@@ -52,13 +79,17 @@ function initiateTracking() {
 		// var place = first(position.address)
 		var place = position.address.cycleway || position.address.road || position.address.retail || position.address.footway || position.address.address29
 		var city = position.address.town || position.address.city
-		Homey.log(UnixEpochToTimeFormatter(position.t), item, 'newPosition:', place, city);
+		GpsDebugLog('newPosition', {item: item, place: place, city: city})
 		if (place == null || city == null) {
-			Homey.log(position.address)
+			GpsDebugLog('no address translation found', position.address)
 		}
 
-		Homey.manager("flow").triggerDevice(
-			"tracker_moved",
+		trackers[item].place = place
+		trackers[item].city = city
+		self.realtime({id: item}, 'position', place)
+
+		Homey.manager('flow').triggerDevice(
+			'tracker_moved',
 			{address: (place + ' in ' + city)},
 			{event: 'test'},
 			{id: item},
@@ -66,19 +97,65 @@ function initiateTracking() {
 				Homey.log(' triggerDevice ', err, result)
 			}
 		)
-
 	})
 	tracking.on('newMessage', function(item, position) {
-		Homey.log(UnixEpochToTimeFormatter(position.t), item, 'newMessage, distance: ', position.distance)
+		GpsDebugLog('newMessage', {item: item, distance: position.distance})
 	})
-
-	tracking.startTracking(trackers)
+	tracking.startTracking(Object.keys(trackers))
 } // End of initiateTracking
 
 var self = {
 	init: function(devices_data, callback) {
 		devices_data.forEach(function (device_data) {
-			trackers.push(device_data.id)
+			trackers[device_data.id] = {}
+		})
+
+		Homey.manager('flow').on('action.get_position', function (callback, args){
+			GpsDebugLog('Flow action card "get position" triggered', args)
+
+		})
+
+		Homey.manager('flow').on('action.say_address', function( callback, args ){
+			GpsDebugLog('Flow action card "say address" triggered', args)
+
+			function ready(result) {
+				GpsDebugLog('result for speech', result)
+				Homey.manager('speech-output').say(result);
+				callback(null, true)
+			}
+
+			// polling is disabled
+			if (tracking == null) {
+				var settings = Homey.manager('settings').get('gpsaccount')
+				if (!settings) return callback('no settings')
+			  if (!Object.keys(trackers).length) return callback('no devices to track!')
+
+				var singleTrack = new Location({
+					user: settings.user,
+					password: settings.password
+				}).getAddressForItem(args.device.id, function(error, address) {
+					if (error) return callback(error)
+					var place = address.cycleway || address.road || address.retail || address.footway || address.address29
+					var city = address.town || address.city
+					trackers[args.device.id].place = place
+					trackers[args.device.id].city = city
+					// self.realtime({id: args.device.id}, 'position', place)
+					result = trackers[args.device.id].place + __("speech.placeCityConjunction") + trackers[args.device.id].city
+					ready(result)
+				})
+			} else {
+				var result = ''
+				if (trackers[args.device.id].place && trackers[args.device.id].city) {
+					result = trackers[args.device.id].place + __("speech.placeCityConjunction") + trackers[args.device.id].city
+				} else if (trackers[args.device.id].city) {
+					result = trackers[args.device.id].city
+				} else if (trackers[args.device.id].place) {
+					result = trackers[args.device.id].place
+				} else {
+					result = __("speech.positionUnknown")
+				}
+				ready(result)
+			}
 		})
 
 		Homey.manager('settings').on('set', function(setting){
@@ -93,13 +170,7 @@ var self = {
 		callback()
 	},
 	deleted: function(device, callback) {
-		var newTrackers = []
-		trackers.forEach(function (tracker) {
-			if (tracker != device.id) {
-				newTrackers.push(tracker)
-			}
-		})
-		trackers = newTrackers
+		delete trackers[device.id]
 		initiateTracking()
 		callback()
 	},
@@ -125,7 +196,9 @@ var self = {
 				items.forEach(function(item) {
 					devices.push({
 						name: item.nm,
-						data: {id: item.id},
+						data: {
+							id: item.id
+						},
 						icon: 'icon.svg'}  // TODO: Let user choose icon
 					)
 				})
@@ -133,7 +206,7 @@ var self = {
 			})
 		})
 		socket.on('add_device', function (data, callback ) {
-			trackers.push(data.data.id)
+			trackers[data.data.id] = {}
 			initiateTracking()
 			callback(null)
 		})
@@ -149,7 +222,6 @@ var self = {
 			},
 			set: function( device_data, state, callback ) {
 				Homey.log('  capabilities > position > set', device_data, state)
-
 				callback( null, state );
 			}
 		}

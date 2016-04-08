@@ -17,6 +17,15 @@
       margin:5px 7px;
       vertical-align:middle;
     }
+
+    .logentry td {
+      font-size: 12px;
+      border-top: 1px solid #ddd;
+      vertical-align: top;
+      line-height: 1.42857143;
+      padding: 4px;
+    }
+
     .form_label {
       width: 150px !important;
       margin-right: 20px;
@@ -56,26 +65,44 @@
         <input id="gpsPolling" type="checkbox" value="polling" />
         <label for="gpsPolling" data-i18n="settings.account.fieldPolling"></label>
       </div>
+      <div>
+        <input id="gpsDebug" type="checkbox" value="polling" />
+        <label for="gpsDebug" data-i18n="settings.account.fieldDebug"></label>
+      </div>
       <div id="busy" class="busy"><i class="fa fa-cog fa-spin fa-2x fa-fw"></i><span>..</span></div>
       <div id="error" class="error"><i class="fa fa-times-circle fa-2x fa-fw"></i><span>..</span></div>
       <div id="success" class="success"><i class="fa fa-check fa-2x fa-fw"></i><span>..</span></div>
-      <button id="saveGpsAccount" class="right" onclick="saveGpsAccount()" data-i18n="settings.account.buttonSave"></button>
+      <button id="saveGpsAccount" class="right" onclick="saveGpsAccount()" data-i18n="settings.account.buttonSave"></button>&nbsp;&nbsp;
       <button id="clearGpsAccount" class="right" onclick="clearGpsAccount()" data-i18n="settings.account.buttonClear"></button>
     </fieldset>
     <fieldset>
       <legend data-i18n="settings.geofences.title"></legend>
       <p data-i18n="settings.geofences.intro"></p>
     </fieldset>
+    <fieldset>
+      <legend data-i18n="settings.debug.title"></legend>
+      <table id="logs" width=100%>
+        <tr>
+          <th class="datetime" data-i18n="settings.debug.thDateTime"></th>
+          <th class="entry" data-i18n="settings.debug.thMessage"></th>
+        </tr>
+      </table>
+    </fieldset>
     <script type="text/javascript">
       function onHomeyReady(){
         clearBusy()
         clearError()
         clearSuccess()
+        updateLog()
+        setInterval(function() {
+          updateLog()
+        }, 5000)
         Homey.get('gpsaccount', function(err, currentGpsAccount) {
           if (currentGpsAccount != null) {
             $("#gpsUsername").val(currentGpsAccount['user'])
             $("#gpsPassword").val(currentGpsAccount['password'])
             $("#gpsPolling").prop('checked', currentGpsAccount['polling'])
+            $("#gpsDebug").prop('checked', currentGpsAccount['debug'])
           }
           Homey.ready()
         })
@@ -89,6 +116,7 @@
               $("#gpsUsername").val('')
               $("#gpsPassword").val('')
               $("#gpsPolling").prop('checked', true)
+              $("#gpsDebug").prop('checked', false)
               showSuccess(__("settings.account.messages.successClearing"), 3000)
             })
           }
@@ -99,7 +127,8 @@
         currentGpsAccount = {
           user: $("#gpsUsername").val(),
           password: $("#gpsPassword").val(),
-          polling: $("#gpsPolling").prop('checked')
+          polling: $("#gpsPolling").prop('checked'),
+          debug: $("#gpsDebug").prop('checked')
         }
         showBusy(__("settings.account.messages.busyValidation"))
         $("#saveGpsAccount").prop("disabled",true)
@@ -117,6 +146,26 @@
             })
           }, 2000)
         })
+      }
+
+      function updateLog() {
+        Homey.get("gpslog", function (err, value) {
+          $('tr.logentry').remove();
+          if (value != null) {
+            $.each(value.reverse() , function( index, obj ) {
+              var html = "<tr class='logentry'><td class='datetime'>"
+              + value[index]['datetime']
+              + "</td><td colspan=2 class='entry'>"
+              + value[index]['message']
+              if (value[index].data == null) {
+                html += "</td></tr>";
+              } else {
+                html += "<br>" + JSON.stringify(value[index]['data']) + "</td></tr>";
+              }
+              $("table#logs").append(html);
+            });
+          }
+        });
       }
 
       function clearBusy() { $("#busy").hide() }
