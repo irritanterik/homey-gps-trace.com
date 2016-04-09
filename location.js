@@ -96,7 +96,6 @@ Location.prototype.validateAccount = function(callback) {
 
 Location.prototype.startTracking = function(items) {
 	var self = this
-//	console.log('## Start tracking for devices:', items, ' with interval:', this.intervalMS)
 	this.trackingItems = []
 	items.forEach(function(itemId){
 		self.trackingItems.push({
@@ -117,7 +116,6 @@ Location.prototype.startTracking = function(items) {
 
 Location.prototype.stopTracking = function() {
 	var self = this
-//	console.log('## Stop tracking for devices:', self.trackingItems)
 	self.trackingItems = []
 	if (self.intervalId) clearInterval(self.intervalId)
 }
@@ -170,8 +168,7 @@ function Tracking(self) {
 
 function checkActiveSession(obj, callback) {
 	if (obj.activeSessionId == null ||
-			(obj.activeSessionLast + (4 * 50 * 1000)) < (new Date).getTime()) {
-		console.log('    --> new activeSessionId needed' )
+  	 (obj.activeSessionLast + (4 * 50 * 1000)) < (new Date).getTime()) {
 		login(obj.user, obj.password, function(error, sessionId, userId) {
 			if (error) {obj.emit('error', error); return}
 			obj.userId = userId

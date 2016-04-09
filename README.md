@@ -25,6 +25,7 @@ your Homey will be added as a default geofence (later). Additional geofences can
  - General settings
     - Account details
     - Enable polling
+    - Enable debug logging
     - Geofences (later)
     - Units meters/miles (later)
 
@@ -34,25 +35,27 @@ your Homey will be added as a default geofence (later). Additional geofences can
     - Minimal meters distance between movement triggers
     - Icon (later)
 
-# TO DO:
- - Implement start/stop moving trigger and condition cards based on device-setting
- - Enhance device-settings
- - Bind devices to precense of users
- - Put stuff in library's
- - Normalize getAddress responses output in location library (or delete wialon backup)
- - Warning on account removal about ghost devices and broken flows
- - Get and save tracker hw-type and hw-category
- - Refactor 'updatetracker' in driver.js: centralize effectuation of change
- - Improve action card 'say location': trigger other trigger cards if polling was disabled
- - Select an icon on device addition
- - Add API:
-    - PUT new positions for a tracker
-    - GET position and address for a tracker
+---
+#### Changelog
+##### 0.0.2
+- Added log system on settings screen
+- Added flow action 'say location'
+##### 0.0.1
+- Initial
+---
+#### TO DO (prioritized)
+- Implement start/stop moving trigger and condition cards based on device-setting
+- Enhance device-settings
+- Bind devices to precense of users
+- Put stuff in library's
+- Normalize getAddress responses output in location library (or delete wialon backup)
+- Warning on account removal about ghost devices and broken flows
+- Get and save tracker hw-type and hw-category
+- Refactor 'updatetracker' in driver.js: centralize effectuation of change
+- Improve action card 'say location': trigger other trigger cards if polling was disabled
+- Select an icon on device addition
+- Add API:
+ - PUT new positions for a tracker
+ - GET position and address for a tracker
  - Units selections meters/miles
- - Do account config on first device addition if it's not done yet.
-
-# versions:
-0.0.1: initial
-0.0.2: development
- - added logging on settings screen
- - added flow action 'say location'
+- Do account config on first device addition if it's not done yet.

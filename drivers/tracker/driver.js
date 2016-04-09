@@ -39,6 +39,9 @@ function GpsDebugLog(message, data) {
 
 // TODO: move to library
 function initiateTracking() {
+
+	console.log(Homey.manager( 'drivers' ).getDriver('tracker'))
+
 	debugLog = Homey.manager('settings').get('gpslog')
 	debugSetting = true
 
@@ -62,7 +65,6 @@ function initiateTracking() {
 		Homey.error(EpochToTimeFormatter(), 'error: ',  error);
 	})
 	tracking.on('firstPosition', function(item, position) {
-		// var place = first(position.address)
 		var place = position.address.cycleway || position.address.road || position.address.retail || position.address.footway || position.address.address29
 		var city = position.address.town || position.address.city
 		GpsDebugLog('firstPosition', {item: item, place: place, city: city})
@@ -86,15 +88,14 @@ function initiateTracking() {
 
 		trackers[item].place = place
 		trackers[item].city = city
-		self.realtime({id: item}, 'position', place)
-
+		// self.realtime({id: item}, 'position', place)
 		Homey.manager('flow').triggerDevice(
 			'tracker_moved',
 			{address: (place + ' in ' + city)},
-			{event: 'test'},
+			{state: 'test'},
 			{id: item},
 			function(err, result) {
-				Homey.log(' triggerDevice ', err, result)
+				GpsDebugLog('flow triggerDevice tracker_moved ', {item: item, error: err, result: result})
 			}
 		)
 	})
@@ -167,9 +168,11 @@ var self = {
 		callback()
 	},
 	renamed: function(device, name, callback) {
+		GpsDebugLog('rename tracker', [device, name])
 		callback()
 	},
 	deleted: function(device, callback) {
+		GpsDebugLog('delete tracker', device)
 		delete trackers[device.id]
 		initiateTracking()
 		callback()
@@ -196,17 +199,17 @@ var self = {
 				items.forEach(function(item) {
 					devices.push({
 						name: item.nm,
-						data: {
-							id: item.id
-						},
+						data: {id: item.id.toString()},
+						settings: {},      // TODO: Add default settings
 						icon: 'icon.svg'}  // TODO: Let user choose icon
 					)
 				})
 				callback(null, devices)
 			})
 		})
-		socket.on('add_device', function (data, callback ) {
-			trackers[data.data.id] = {}
+		socket.on('add_device', function (device, callback ) {
+			GpsDebugLog('pairing: tracker added', device)
+			trackers[device.data.id] = {}
 			initiateTracking()
 			callback(null)
 		})
@@ -214,14 +217,14 @@ var self = {
 	capabilities: {
 		position: {
 			get: function( device_data, callback ){
-				Homey.log('  capbilities > position > get', device_data)
+				GpsDebugLog('capbilities > position > get', device_data)
 
 				if( typeof callback == 'function' ) {
 					callback(null, 'Kalverstraat in Amsterdam')
 				}
 			},
 			set: function( device_data, state, callback ) {
-				Homey.log('  capabilities > position > set', device_data, state)
+				GpsDebugLog('capbilities > position > set', [device_data, state])
 				callback( null, state );
 			}
 		}

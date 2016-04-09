@@ -18,13 +18,35 @@
       vertical-align:middle;
     }
 
-    .logentry td {
+    table#logs tr th.datetime, table#logs tr td.datetime {
+      border-top: 1px solid #ddd;
+      vertical-align: top;
+      padding: 3px;
+      font-size:12px;
+      width:175px;
+    }
+    table#logs tr th.entry, table#logs tr td.entry {
+      border-top: 1px solid #ddd;
+      vertical-align: top;
+      padding: 3px;
+      font-size:12px;
+    }
+    fieldset#logs {
+      border-top: 1px solid #ddd;
+      vertical-align: top;
+      padding: 3px;
+      overflow-y: scroll;
+      max-height: 200px;
+    }
+
+
+    /*.logentry td {
       font-size: 12px;
       border-top: 1px solid #ddd;
       vertical-align: top;
       line-height: 1.42857143;
       padding: 4px;
-    }
+    }*/
 
     .form_label {
       width: 150px !important;
