@@ -23,7 +23,7 @@ your Homey will be added as a default geofence (later). Additional geofences can
  - Update tracker (if polling is disabled) (later)
  - Say location of tracker
 
-## settings
+### settings
  - General settings
     - Account details
     - Enable polling
@@ -39,24 +39,26 @@ your Homey will be added as a default geofence (later). Additional geofences can
     - 4. Icon (later)
 
 ---
-#### Changelog
+### Changelog
 
-##### 0.0.3
+##### version 0.0.3
 - Added flow trigger 'Tracker starts moving'
 - Added flow trigger 'Tracker stops moving'
 - Added flow condition 'Tracker is moving'
 - Implemented device setting 1, 2 and 3
 - Added token 'distance' on flow trigger 'Position changed'
 - Refactored code by standardjs.com template
+- Prepared stuff for route analysis
 
-##### 0.0.2
+##### version 0.0.2
 - Added log system on settings screen
 - Added flow action 'say location'
 
-##### 0.0.1
-- Initial
+##### version 0.0.1
+- Initial checkin
+
 ---
-#### TO DO (prioritized)
+### TO DO (prioritized)
 - Bind devices to precense of users
 - Put stuff in library's
 - Normalize getAddress responses output in location library (or delete wialon backup)
