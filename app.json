@@ -1,6 +1,6 @@
 {
   "id": "com.gps-trace",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "compatibility": "*",
   "name": {
     "en": "GPS-Trace",
@@ -14,8 +14,9 @@
      "name":"Erik van Dongen",
      "website":"http://github.com/irritanterik/"
   },
-  "category":"internet",
+  "category":"appliances",
   "permissions":[
+    "homey:manager:speech-input",
     "homey:manager:speech-output"
   ],
   "images":{
