@@ -1,4 +1,4 @@
-var Location = require('././location.js')
+var Location = require('./location.js')
 
 module.exports = [{
   // validate account for use with settings page
@@ -7,11 +7,12 @@ module.exports = [{
   path:	'/validate/account',
   requires_authorization: true,
   role: 'owner',
-  fn: function( callback, args ){
+  fn: function (callback, args) {
     var tracking = new Location({
       user: args.query.user,
       password: args.query.password
-    }).validateAccount(function(error, userId){
+    })
+    tracking.validateAccount(function (error, userId) {
       tracking = null
       switch (error) {
         case null: // success!

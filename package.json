@@ -1,0 +1,11 @@
+{
+  "name":"GPS-Trace",
+  "author":"Erik van Dongen",
+  "license": "ISC",
+  "dependencies":{
+     "http.min":"^1.2.4",
+  },
+  "standard": {
+    "globals": [ "Homey", "__" ]
+  }
+}

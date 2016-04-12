@@ -44,40 +44,43 @@
           },
           "children":[
             {
-              "id":"intervalPolling",
-              "type":"number",
-              "label":{
-                "en":"Polling interval (seconds)",
-                "nl":"Poll interval (seconden)"
-              },
-              "value": 10
-            },
-            {
               "id":"retriggerRestrictTime",
               "type":"number",
               "label":{
-                "en":"Minimum time between triggers (seconds)",
-                "nl":"Minimumtijd tussen triggers (seconden)"
+                "en":"Minimum time between movement triggers (seconds)",
+                "nl":"Minimumtijd tussen beweging triggers (seconden)"
               },
-              "value": 1
+              "value": 1,
+              "attr":{
+                "min": 0,
+                "max": 86400
+              }
             },
             {
               "id":"retriggerRestrictDistance",
               "type":"number",
               "label":{
-                "en":"Minimum distance travelled between triggers (meters)",
+                "en":"Minimum distance travelled between movement triggers (meters)",
                 "nl":"Minimaal afgelegde afstand tussen triggers (meter)"
               },
-              "value": 1
+              "value": 1,
+              "attr":{
+                "min": 0,
+                "max": 40075000
+              }
             },
             {
-              "id":"stopedMovingTimeout",
+              "id":"stoppedMovingTimeout",
               "type":"number",
               "label":{
-                "en":"Minimal time between last new position and trigger end movement (seconds)",
-                "nl":"Minimumtijd tussen laatst maal ontvangen positie en trigger einde beweging (seconden)"
+                "en":"Minimum time between last new position and trigger 'stops moving' (seconds)",
+                "nl":"Minimumtijd tussen laatst ontvangen positie en trigger 'einde beweging' (seconden)"
               },
-              "value": 120
+              "value": 120,
+              "attr":{
+                "min": 30,
+                "max": 86400
+              }
             }
           ]
         }
@@ -126,6 +129,101 @@
               "en":"Piccadilly Circus, London",
               "nl":"Kalverstraat in Amsterdam"
             }
+          },{
+            "name":"distance",
+            "title":{
+              "en":"distance",
+              "nl":"afstand"
+            },
+            "example":{
+              "en":"25.54"
+            }
+          }
+        ]
+      },{
+        "id":"tracker_start_moving",
+        "title":{
+          "en":"Starts moving",
+          "nl":"Komt in beweging"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter":"driver_id=tracker"
+          }
+        ],
+        "tokens":[
+          {
+            "name":"address",
+            "title":{
+              "en":"address",
+              "nl":"adres"
+            },
+            "example":{
+              "en":"Piccadilly Circus, London",
+              "nl":"Kalverstraat in Amsterdam"
+            }
+          },{
+            "name":"distance",
+            "title":{
+              "en":"distance",
+              "nl":"afstand"
+            },
+            "example":{
+              "en":"25.54"
+            }
+          }
+        ]
+      },{
+        "id":"tracker_stopt_moving",
+        "title":{
+          "en":"Stops moving",
+          "nl":"Stopt beweging"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter":"driver_id=tracker"
+          }
+        ],
+        "tokens":[
+          {
+            "name":"address",
+            "title":{
+              "en":"address",
+              "nl":"adres"
+            },
+            "example":{
+              "en":"Piccadilly Circus, London",
+              "nl":"Kalverstraat in Amsterdam"
+            }
+          },{
+            "name":"distance",
+            "title":{
+              "en":"distance travelled",
+              "nl":"afgelegde afstand"
+            },
+            "example":{
+              "en":"2500.21"
+            }
+          }
+        ]
+      }
+    ],
+    "conditions": [
+      {
+        "id":"tracker_moving",
+        "title":{
+           "en":"Is !{{|not}} moving",
+           "nl":"Is !{{|niet}} in beweging"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter":"driver_id=tracker"
           }
         ]
       }
