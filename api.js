@@ -1,4 +1,4 @@
-var Location = require('./location.js')
+var Location = require('./lib/location.js')
 
 module.exports = [{
   // validate account for use with settings page

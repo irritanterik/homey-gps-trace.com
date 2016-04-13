@@ -41,6 +41,10 @@ your Homey will be added as a default geofence (later). Additional geofences can
 ---
 ### Changelog
 
+##### version 0.0.4
+- Fixed bug where something only worked theoretically
+- Put stuff in library's
+
 ##### version 0.0.3
 - Added flow trigger 'Tracker starts moving'
 - Added flow trigger 'Tracker stops moving'
@@ -59,11 +63,10 @@ your Homey will be added as a default geofence (later). Additional geofences can
 
 ---
 ### TO DO (prioritized)
+- Add mobile card with mini-map with position
 - Bind devices to precense of users
-- Put stuff in library's
 - Normalize getAddress responses output in location library (or delete wialon backup)
 - Support speech triggers
-- Add mobile card with mini-map with position
 - Warning on account removal about ghost devices and broken flows
 - Get and save tracker hw-type and hw-category
 - Refactor 'updatetracker' in driver.js: centralize effectuation of change

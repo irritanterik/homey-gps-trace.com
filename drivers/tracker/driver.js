@@ -1,12 +1,13 @@
-/* global Homey, __ */
+/* global Homey */
 'use strict'
 
-var Location = require('../../../location.js')
+var Location = require('../../lib/location.js')
+var Util = require('../../lib/util.js')
 var tracking = null
 var trackers = {}
 var debugSetting = true
 var debugLog = []
-// var exampleTrackerObject = {
+// var exampleTrackerObject[x] = {
 //   place: 'Dam',
 //   city: 'Amsterdam',
 //   lon: 52.3731141,
@@ -39,12 +40,6 @@ var debugLog = []
 //   }
 // }
 
-// TODO: move to helper
-function EpochToTimeFormatter (epoch) {
-  if (epoch == null) { epoch = new Date().getTime() }
-  return (new Date(epoch)).toTimeString().replace(/.*(\d{2}:\d{2}:\d{2}).*/, '$1')
-}
-// TODO: move to helper
 function GpsDebugLog (message, data) {
   if (!debugSetting) return
   if (!debugLog) debugLog = []
@@ -55,22 +50,10 @@ function GpsDebugLog (message, data) {
   if (debugLog.length > 30) debugLog.splice(0, 1)
   Homey.manager('settings').set('gpslog', debugLog)
   if (data == null) {
-    Homey.log(EpochToTimeFormatter(), message)
+    Homey.log(Util.epochToTimeFormatter(), message)
   } else {
-    Homey.log(EpochToTimeFormatter(), message, data)
+    Homey.log(Util.epochToTimeFormatter(), message, data)
   }
-}
-
-// TODO: move to library
-function createAddressSpeech (place, city) {
-  if (place && city) {
-    return place + __('speech.placeCityConjunction') + city
-  } else if (city) {
-    return city
-  } else if (place) {
-    return place
-  }
-  return __('speech.positionUnknown')
 }
 
 // TODO: move to library
@@ -92,7 +75,7 @@ function stopMoving (trackerid) {
 
   // handle flows
   var tracker_tokens = {
-    address: createAddressSpeech(route.destination.place, route.destination.city),
+    address: Util.createAddressSpeech(route.destination.place, route.destination.city),
     distance: route.distance
   }
 
@@ -106,7 +89,7 @@ function stopMoving (trackerid) {
     }
   )
 }
-// TODO: move to library
+
 function initiateTracking () {
   debugLog = Homey.manager('settings').get('gpslog')
   debugSetting = true
@@ -140,7 +123,12 @@ function initiateTracking () {
     password: settings.password,
     intervalMS: 10000 // TODO: read from app setting
   })
-
+  tracking.on('error', function (error) {
+    GpsDebugLog('event: error', error)
+  })
+  tracking.on('message', function (trackerid, data) {
+    GpsDebugLog('event: message', {id: trackerid, distance: data.distance})
+  })
   tracking.on('location', function (trackerid, data) {
     var place = data.address.cycleway || data.address.road || data.address.retail || data.address.footway || data.address.address29 || data.address.path || data.address.pedestrian
     var city = data.address.town || data.address.city
@@ -152,7 +140,7 @@ function initiateTracking () {
     trackers[trackerid].city = city
     trackers[trackerid].lat = data.y
     trackers[trackerid].lon = data.x
-    trackers[trackerid].timeLastUpdate = data.t
+    trackers[trackerid].timeLastUpdate = data.t * 1000
     trackers[trackerid].sumDistanceLastTrigger += data.distance
 
     var timeConstraint = (trackers[trackerid].timeLastUpdate - trackers[trackerid].timeLastTrigger) < (trackers[trackerid].settings.retriggerRestrictTime * 1000)
@@ -174,17 +162,20 @@ function initiateTracking () {
 
     // handle flows
     var tracker_tokens = {
-      address: createAddressSpeech(place, city),
+      address: Util.createAddressSpeech(place, city),
       distance: data.distance
     }
 
     if (wasMoving) {
+      if (!trackers[trackerid].route) {
+        trackers[trackerid].route = {}
+      }
       trackers[trackerid].route.distance += data.distance
     }
 
     if (!wasMoving && !distanceConstraint) {
       trackers[trackerid].route = {
-        timeStart: data.t,
+        timeStart: data.t * 1000,
         distance: data.distance,
         origin: {
           place: place,
@@ -205,7 +196,7 @@ function initiateTracking () {
     }
 
     if (!timeConstraint && !distanceConstraint) {
-      trackers[trackerid].timeLastTrigger = data.t
+      trackers[trackerid].timeLastTrigger = data.t * 1000
       trackers[trackerid].sumDistanceLastTrigger = 0
       Homey.manager('flow').triggerDevice(
         'tracker_moved',
@@ -217,12 +208,6 @@ function initiateTracking () {
         }
       )
     }
-  })
-  tracking.on('message', function (trackerid, data) {
-    GpsDebugLog('event: message', {id: trackerid, distance: data.distance})
-  })
-  tracking.on('error', function (error) {
-    GpsDebugLog('event: error', error)
   })
   tracking.startTracking(Object.keys(trackers))
 } // End of initiateTracking
@@ -278,13 +263,13 @@ var self = {
           var city = address.town || address.city
           trackers[trackerid].place = place
           trackers[trackerid].city = city
-          ready(createAddressSpeech(place, city))
+          ready(Util.createAddressSpeech(place, city))
         }).on('error', function (error) {
           GpsDebugLog('event: error', error)
           if (error) return callback(error)
         })
       } else {
-        ready(createAddressSpeech(trackers[trackerid].place, trackers[trackerid].city))
+        ready(Util.createAddressSpeech(trackers[trackerid].place, trackers[trackerid].city))
       }
     })
 
