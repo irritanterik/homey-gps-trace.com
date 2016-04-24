@@ -1,9 +1,10 @@
-{
+{ "defaultGeofenceName": "Home",
 	"speech": {
 		"placeCityConjunction": ", ",
 		"positionUnknown": "The location is unknown."
 	},
 	"settings": {
+    "OSMlanguage": "en",
 		"title": "GPS-Trace settings",
 		"intro": "Before you can add your tracked devices you need to enter your username and password for <a href=http://www.gps-trace.com>http://www.gps-trace.com</a> first. These settings are stored locally on your Homey.",
 		"instruction": "Create an account at gps-trace.com first if you don't have it yet.",
@@ -33,8 +34,20 @@
 		},
 		"geofences": {
 			"title": "Geofences",
-			"intro": "Nothing here yet"
-		},
+      "geofencesourcetype": {
+        "AUTO": "automatic",
+        "DEFAULT": "default",
+        "USER": "user"
+      },
+      "labelNameGeofence": "Enter geofence name",
+      "newGeofenceName": "New geofence",
+      "errorGeofenceNameUnique": "Geofence name must be unique!",
+      "labelShow": "Show",
+      "optionTrackers": "Trackers",
+      "optionStartPoints": "Start points",
+      "optionEndPoints": "End points",
+      "optionRoutes": "Routes"
+  	},
 		"debug": {
 			"title": "Logging",
 			"thDateTime": "Date and time",

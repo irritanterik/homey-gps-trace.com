@@ -2,8 +2,13 @@
   "name":"GPS-Trace",
   "author":"Erik van Dongen",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/irritanterik/homey-gps-trace.com"
+  },
   "dependencies":{
      "http.min":"^1.2.4",
+     "point-in-polygon":"^1.0.0"
   },
   "standard": {
     "globals": [ "Homey", "__" ]

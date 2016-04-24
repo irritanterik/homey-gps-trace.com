@@ -28,4 +28,24 @@ module.exports = [{
       }
     })
   }
+}, {
+  description: 'Get location of Homey',
+  method: 'GET',
+  path: '/geofence/self',
+  requires_authorization: true,
+  role: 'owner',
+  fn: function (callback, args) {
+    Homey.manager('geolocation').getLocation(callback)
+  }
+}, {
+  description: 'Get all trackers',
+  method: 'GET',
+  path: '/trackers',
+  requires_authorization: true,
+  role: 'owner',
+  fn: function (callback, args) {
+    Homey.manager('drivers').getDriver('tracker').getTrackers(function (response) {
+      callback(null, response)
+    })
+  }
 }]

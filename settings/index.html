@@ -2,220 +2,77 @@
 <html>
   <head>
     <script type="text/javascript" src="/manager/webserver/assets/js/jquery.js"></script>
-    <style>
-    /* based on http://isabelcastillo.com/error-info-messages-css */
-    .busy, .info, .success, .warning, .error {
-      margin: 10px 0px;
-      padding:0px;
-    }
-    .busy     {color: #00529B;background-color: #BDE5F8;}
-    .info     {color: #00529B;background-color: #BDE5F8;}
-    .success  {color: #4F8A10;background-color: #DFF2BF;}
-    .warning  {color: #9F6000;background-color: #FEEFB3;}
-    .error    {color: #D8000C;background-color: #FFBABA;}
-    .busy i, .info i, .success i, .warning i, .error i {
-      margin:5px 7px;
-      vertical-align:middle;
-    }
-
-    table#logs tr th.datetime, table#logs tr td.datetime {
-      border-top: 1px solid #ddd;
-      vertical-align: top;
-      padding: 3px;
-      font-size:12px;
-      width:175px;
-    }
-    table#logs tr th.entry, table#logs tr td.entry {
-      border-top: 1px solid #ddd;
-      vertical-align: top;
-      padding: 3px;
-      font-size:12px;
-    }
-    fieldset#logs {
-      border-top: 1px solid #ddd;
-      vertical-align: top;
-      padding: 3px;
-      overflow-y: scroll;
-      max-height: 200px;
-    }
-
-
-    /*.logentry td {
-      font-size: 12px;
-      border-top: 1px solid #ddd;
-      vertical-align: top;
-      line-height: 1.42857143;
-      padding: 4px;
-    }*/
-
-    .form_label {
-      width: 150px !important;
-      margin-right: 20px;
-      display: inherit;
-    }
-    .form_input {
-      width: 250px !important;
-      display: inherit;
-    }
-    select {
-      padding: .5em .75em;
-      vertical-align: middle;
-      font-size: 12px;
-      font-family: inherit;
-      font-weight: inherit;
-      border: 1px solid #aaa;
-      border-radius: 2px;
-      width:270px !important;
-    }
+    <script type="text/javascript" src="/manager/webserver/assets/js/jquery.ui.js"></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=false"></script>
+    <script type="text/javascript" src="js/settings.js"></script>
+    <script type="text/javascript" src="js/settings-account.js"></script>
+    <script type="text/javascript" src="js/settings-geofence.js"></script>
+    <script type="text/javascript" src="js/settings-log.js"></script>
+    <link rel="stylesheet" href="css/settings.css">
    </style>
   </head>
   <body>
     <h1 data-i18n="settings.title"></h1>
-    <p data-i18n="settings.intro"></p>
-    <p data-i18n="settings.instruction"></p>
-    <fieldset>
-      <legend data-i18n="settings.account.title"></legend>
-      <div class="field row">
-        <label class="form_label" for="gpsUsername" data-i18n="settings.account.fieldUsername"></label>
-        <input class="form_input" id="gpsUsername" type="text" value="" />
-      </div>
-      <div class="field row">
-        <label class="form_label" for="gpsPassword" data-i18n="settings.account.fieldPassword"></label>
-        <input class="form_input" id="gpsPassword" type="password" />
-      </div>
-      <div>
-        <input id="gpsPolling" type="checkbox" value="polling" />
-        <label for="gpsPolling" data-i18n="settings.account.fieldPolling"></label>
-      </div>
-      <div>
-        <input id="gpsDebug" type="checkbox" value="polling" />
-        <label for="gpsDebug" data-i18n="settings.account.fieldDebug"></label>
-      </div>
-      <div id="busy" class="busy"><i class="fa fa-cog fa-spin fa-2x fa-fw"></i><span>..</span></div>
-      <div id="error" class="error"><i class="fa fa-times-circle fa-2x fa-fw"></i><span>..</span></div>
-      <div id="success" class="success"><i class="fa fa-check fa-2x fa-fw"></i><span>..</span></div>
-      <button id="saveGpsAccount" class="right" onclick="saveGpsAccount()" data-i18n="settings.account.buttonSave"></button>&nbsp;&nbsp;
-      <button id="clearGpsAccount" class="right" onclick="clearGpsAccount()" data-i18n="settings.account.buttonClear"></button>
-    </fieldset>
-    <fieldset>
-      <legend data-i18n="settings.geofences.title"></legend>
-      <p data-i18n="settings.geofences.intro"></p>
-    </fieldset>
-    <fieldset>
-      <legend data-i18n="settings.debug.title"></legend>
-      <table id="logs" width=100%>
-        <tr>
-          <th class="datetime" data-i18n="settings.debug.thDateTime"></th>
-          <th class="entry" data-i18n="settings.debug.thMessage"></th>
-        </tr>
-      </table>
-    </fieldset>
-    <script type="text/javascript">
-      function onHomeyReady(){
-        clearBusy()
-        clearError()
-        clearSuccess()
-        updateLog()
-        setInterval(function() {
-          updateLog()
-        }, 5000)
-        Homey.get('gpsaccount', function(err, currentGpsAccount) {
-          if (currentGpsAccount != null) {
-            $("#gpsUsername").val(currentGpsAccount['user'])
-            $("#gpsPassword").val(currentGpsAccount['password'])
-            $("#gpsPolling").prop('checked', currentGpsAccount['polling'])
-            $("#gpsDebug").prop('checked', currentGpsAccount['debug'])
-          }
-          Homey.ready()
-        })
-      }
-
-      function clearGpsAccount() {
-        Homey.confirm(__("settings.account.messages.confirmClearAccount"), 'warning', function(err, result) {
-          if (result) {
-            showBusy(__("settings.account.messages.busyClearing"))
-            Homey.set('gpsaccount', null, function(error, result) {
-              $("#gpsUsername").val('')
-              $("#gpsPassword").val('')
-              $("#gpsPolling").prop('checked', true)
-              $("#gpsDebug").prop('checked', false)
-              showSuccess(__("settings.account.messages.successClearing"), 3000)
-            })
-          }
-        })
-      }
-
-      function saveGpsAccount() {
-        currentGpsAccount = {
-          user: $("#gpsUsername").val(),
-          password: $("#gpsPassword").val(),
-          polling: $("#gpsPolling").prop('checked'),
-          debug: $("#gpsDebug").prop('checked')
-        }
-        showBusy(__("settings.account.messages.busyValidation"))
-        $("#saveGpsAccount").prop("disabled",true)
-        Homey.api('GET', '/validate/account?' + $.param(currentGpsAccount), function(error, result){
-          if(error) {
-            $("#saveGpsAccount").prop("disabled",false)
-            return showError(__("settings.account.messages.errorValidation." + error))
-          }
-          showBusy(__("settings.account.messages.busySaving"))
-          setTimeout(function(){
-            Homey.set('gpsaccount', currentGpsAccount, function(error, settings) {
-              $("#saveGpsAccount").prop("disabled",false)
-              if (error) {return showError(__("settings.account.messages.errorSaving"))}
-              showSuccess(__("settings.account.messages.successSaving"), 3000)
-            })
-          }, 2000)
-        })
-      }
-
-      function updateLog() {
-        Homey.get("gpslog", function (err, value) {
-          $('tr.logentry').remove();
-          if (value != null) {
-            $.each(value.reverse() , function( index, obj ) {
-              var html = "<tr class='logentry'><td class='datetime'>"
-              + value[index]['datetime']
-              + "</td><td colspan=2 class='entry'>"
-              + value[index]['message']
-              if (value[index].data == null) {
-                html += "</td></tr>";
-              } else {
-                html += "<br>" + JSON.stringify(value[index]['data']) + "</td></tr>";
-              }
-              $("table#logs").append(html);
-            });
-          }
-        });
-      }
-
-      function clearBusy() { $("#busy").hide() }
-      function showBusy(message, showTime) {
-        clearError()
-        clearSuccess()
-        $("#busy span").html(message)
-        $("#busy").show()
-        if (showTime) $("#busy").delay(showTime).fadeOut()
-      }
-
-      function clearError() { $("#error").hide() }
-      function showError(message, showTime) {
-        clearBusy()
-        clearSuccess()
-        $("#error span").html(message)
-        $("#error").show()
-        if (showTime) $("#error").delay(showTime).fadeOut()
-      }
-
-      function clearSuccess() { $("#success").hide() }
-      function showSuccess(message, showTime) {
-        clearBusy()
-        clearError()
-        $("#success span").html(message)
-        $("#success").show()
-        if (showTime) $("#success").delay(showTime).fadeOut()
-      }
-    </script>
+    <div id="panel-buttons">
+      <button id="panel-button-1" class="button panel-button" onclick="showPanel(1)" data-i18n="settings.account.title">Account</button>&nbsp;
+      <button id="panel-button-2" class="button panel-button" onclick="showPanel(2)" data-i18n="settings.geofences.title">Geofences</button>&nbsp;
+      <button id="panel-button-3" class="button panel-button" onclick="showPanel(3)" data-i18n="settings.debug.title">Logging</button>&nbsp;
+    </div>
+    <!-- Account settings panel -->
+  	<div id="panel-1" class="panel">
+      <fieldset>
+        <p data-i18n="settings.intro"></p>
+        <p data-i18n="settings.instruction"></p>
+        <div class="field row">
+          <label class="form_label" for="gpsUsername" data-i18n="settings.account.fieldUsername"></label>
+          <input class="form_input" id="gpsUsername" type="text" value="" />
+        </div>
+        <div class="field row">
+          <label class="form_label" for="gpsPassword" data-i18n="settings.account.fieldPassword"></label>
+          <input class="form_input" id="gpsPassword" type="password" />
+        </div>
+        <div>
+          <input id="gpsPolling" type="checkbox" value="polling" />
+          <label for="gpsPolling" data-i18n="settings.account.fieldPolling"></label>
+        </div>
+        <div>
+          <input id="gpsDebug" type="checkbox" value="polling" />
+          <label for="gpsDebug" data-i18n="settings.account.fieldDebug"></label>
+        </div>
+        <div id="busy" class="busy"><i class="fa fa-cog fa-spin fa-2x fa-fw"></i><span>..</span></div>
+        <div id="error" class="error"><i class="fa fa-times-circle fa-2x fa-fw"></i><span>..</span></div>
+        <div id="success" class="success"><i class="fa fa-check fa-2x fa-fw"></i><span>..</span></div>
+        <button id="saveGpsAccount" class="right" onclick="saveGpsAccount()"><i class="fa fa-save"></i> <span data-i18n="settings.account.buttonSave">Save</span></button>&nbsp;&nbsp;
+        <button id="clearGpsAccount" class="right" onclick="clearGpsAccount()"><i class="fa fa-trash-o"></i> <span data-i18n="settings.account.buttonClear">Clear</span></button>
+      </fieldset>
+    </div>
+    <!-- Geofences settings panel -->
+    <div id="panel-2" class="panel">
+      <fieldset class="map">
+        <strong data-i18n="settings.geofences.title">Geofences</strong>&nbsp;
+        <button id="addGeofence" onClick="addGeofence()"><i class="fa fa-plus"></i></button>&nbsp;
+        <select id="geofences" name="geofences" onChange="changeGeofenceList()">
+        </select>&nbsp;
+        <button id="editGeofence" onClick="editGeofence()"><i class="fa fa-pencil"></i></button>&nbsp;
+        <button id="delGeofence" onClick="deleteGeofence()"><i class="fa fa-trash-o"></i></button>&nbsp;
+        | <span style="white-space:nowrap"><strong data-i18n="settings.geofences.labelShow">Weergave</strong>&nbsp;
+        <input type="checkbox" id="showTrackers" onChange="showTrackersChange()" checked> <span data-i18n="settings.geofences.optionTrackers"></span> &nbsp;
+        <input type="checkbox" id="showRouteStartPoints" disabled> <span data-i18n="settings.geofences.optionStartPoints"></span> &nbsp;
+        <input type="checkbox" id="showRouteEndPoints" disabled> <span data-i18n="settings.geofences.optionEndPoints"></span> &nbsp;
+        <input type="checkbox" id="showRoutes" disabled> <span data-i18n="settings.geofences.optionRoutes"></span></span>
+        <div id="map-canvas"></div>
+      </fieldset>
+    </div>
+    <!-- Debug settings panel -->
+    <div id="panel-3" class="panel">
+      <fieldset>
+        <table id="logs" width=100%>
+          <tr>
+            <th class="datetime" data-i18n="settings.debug.thDateTime"></th>
+            <th class="entry" data-i18n="settings.debug.thMessage"></th>
+          </tr>
+        </table>
+      </fieldset>
+    </div>
   </body>
 </html>

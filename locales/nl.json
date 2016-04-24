@@ -1,9 +1,10 @@
-{
+{ "defaultGeofenceName": "Thuis",
 	"speech": {
 		"placeCityConjunction": " in ",
 		"positionUnknown": "De locatie is onbekend."
 	},
 	"settings": {
+    "OSMlanguage": "nl",
 		"title": "GPS-Trace instellingen",
 		"intro": "Voordat er te volgen voertuigen of personen kunnen worden toegevoegd moet hier een geldige gebruikersnaam en wachtwoord worden opgegeven voor <a href=http://www.gps-trace.com>http://www.gps-trace.com</a>. Deze instellingen worden op je Homey opgeslagen.",
 		"instruction": "Registreer eerst een account bij gps-trace.com als je deze nog niet hebt.",
@@ -14,7 +15,7 @@
 			"fieldPolling": "Inschakelen polling",
 			"fieldDebug": "Inschakelen debug log",
 			"buttonSave": "Opslaan",
-			"buttonClear": "Verwijderen account instellingen",
+			"buttonClear": "Account instellingen verwijderen",
 			"messages": {
 				"busyClearing": "Account verwijderen van Homey...",
 				"busySaving": "Account is geldig. Instellingen worden opgeslagen...",

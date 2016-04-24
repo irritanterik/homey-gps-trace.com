@@ -1,6 +1,6 @@
 {
   "id": "com.gps-trace",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "compatibility": "*",
   "name": {
     "en": "GPS-Trace",
@@ -16,6 +16,7 @@
   },
   "category":"appliances",
   "permissions":[
+    "homey:manager:geolocation",
     "homey:manager:speech-input",
     "homey:manager:speech-output"
   ],
@@ -35,7 +36,7 @@
         "small":"drivers/tracker/assets/images/small.jpg"
       },
       "class":"other",
-      "capabilities":["position"],
+      "capabilities":["location, moving"],
       "settings":[
         {
           "type":"group",
@@ -74,8 +75,8 @@
               "id":"stoppedMovingTimeout",
               "type":"number",
               "label":{
-                "en":"Minimum time between last new position and trigger 'stops moving' (seconds)",
-                "nl":"Minimumtijd tussen laatst ontvangen positie en trigger 'einde beweging' (seconden)"
+                "en":"Minimum time between last new location and trigger 'stops moving' (seconds)",
+                "nl":"Minimumtijd tussen laatst ontvangen locatie en trigger 'einde beweging' (seconden)"
               },
               "value": 120,
               "attr":{
@@ -109,7 +110,7 @@
       {
         "id":"tracker_moved",
         "title":{
-          "en":"Position changed",
+          "en":"Location changed",
           "nl":"Locatie gewijzigd"
         },
         "args": [
@@ -191,10 +192,20 @@
         ],
         "tokens":[
           {
-            "name":"address",
+            "name":"start_location",
             "title":{
-              "en":"address",
-              "nl":"adres"
+              "en":"start address",
+              "nl":"beginpunt"
+            },
+            "example":{
+              "en":"Piccadilly Circus, London",
+              "nl":"Kalverstraat in Amsterdam"
+            }
+          },{
+            "name":"stop_location",
+            "title":{
+              "en":"end address",
+              "nl":"bestemming"
             },
             "example":{
               "en":"Piccadilly Circus, London",
@@ -211,6 +222,38 @@
             }
           }
         ]
+      },{
+        "id":"tracker_geofence_entered",
+        "title":{
+          "en":"Entered geofence",
+          "nl":"Betreed geofence"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter":"driver_id=tracker"
+          },{
+            "name": "geofence",
+            "type": "autocomplete"
+          }
+        ]
+      },{
+        "id":"tracker_geofence_left",
+        "title":{
+          "en":"Left geofence",
+          "nl":"Verlaat geofence"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter":"driver_id=tracker"
+          },{
+            "name": "geofence",
+            "type": "autocomplete"
+          }
+        ]
       }
     ],
     "conditions": [
@@ -225,6 +268,22 @@
             "name": "device",
             "type": "device",
             "filter":"driver_id=tracker"
+          }
+        ]
+      },{
+        "id":"tracker_geofence",
+        "title":{
+          "en":"Is !{{|not}} in geofence",
+          "nl":"Is !{{|niet}} in geofence"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter":"driver_id=tracker"
+          },{
+            "name": "geofence",
+            "type": "autocomplete"
           }
         ]
       }
