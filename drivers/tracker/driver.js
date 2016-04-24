@@ -70,6 +70,7 @@ function checkGeofences (notrigger) {
 }
 
 function checkGeofencesForTracker (trackerId, notrigger) {
+  if (!geofences) return
   Object.keys(geofences).forEach(function (geofenceId) {
     var trackerInGeofence = false
     var trackerWasInGeofence = trackers[trackerId].geofences.indexOf(geofenceId) !== -1
@@ -331,6 +332,22 @@ var self = {
       // TODO: force position update for tracker if polling is disabled
       // TODO: do *all* the update and trigger magic here
     })
+    Homey.manager('flow').on('trigger.tracker_geofence_entered', function (callback, args, state) {
+      GpsDebugLog('flow trigger tracker_geofence_entered evaluation', {card: args.geofence.geofenceId.toString(), state: state.geofence.toString()})
+      if (args.geofence.geofenceId.toString() === state.geofence.toString()) {
+        callback(null, true)
+      } else {
+        callback(null, false)
+      }
+    })
+    Homey.manager('flow').on('trigger.tracker_geofence_left', function (callback, args, state) {
+      GpsDebugLog('flow trigger tracker_geofence_left evaluation', {card: args.geofence.geofenceId.toString(), state: state.geofence.toString()})
+      if (args.geofence.geofenceId.toString() === state.geofence.toString()) {
+        callback(null, true)
+      } else {
+        callback(null, false)
+      }
+    })
     Homey.manager('flow').on('action.say_address', function (callback, args) {
       GpsDebugLog('Flow action say_address', args)
       var trackerId = args.device.id
@@ -356,7 +373,8 @@ var self = {
           var city = address.town || address.city
           ready(Util.createAddressSpeech(place, city))
           // TODO: do *all* the update and trigger magic here
-        }).on('error', function (error) {
+        })
+        singleTrack.on('error', function (error) {
           GpsDebugLog('event: error', error)
           if (error) return callback(error)
         })
