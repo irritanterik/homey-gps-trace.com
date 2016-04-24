@@ -361,7 +361,7 @@ var self = {
           if (error) return callback(error)
         })
       } else {
-        ready(Util.createAddressSpeech(trackers[trackerId].place, trackers[trackerId].city))
+        ready(Util.createAddressSpeech(trackers[trackerId].location.place, trackers[trackerId].location.city))
       }
     })
 

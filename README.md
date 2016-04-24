@@ -24,20 +24,28 @@ your Homey will be added as a default geofence (later). Additional geofences can
 ### Settings
  - General settings
     - Account details
-    - Enable polling
-    - Enable debug logging
+      - Enable polling
+      - Enable debug logging
+      - Units meters/miles selection (later)
     - Geofences
-    - Units meters/miles selection (later)
-
+      - Add new geofences
+      - Edit Geofences
+      - Rename geofence (double click on map)
+      - Delete geofences
+      - Show trackers on map
+    - Logging
  - Settings on device
-    - 1. Minimum seconds time between movement triggers
+    1. Minimum seconds time between movement triggers
       ('do not retrigger for 30 seconds')
-    - 2. Minimum meters distance between movement triggers
-    - 3. Minimum time between last new position and trigger 'stops moving'
-    - 4. Icon (later)
+    2. Minimum meters distance between movement triggers
+    3. Minimum time between last new position and trigger 'stops moving'
+    4. Icon (later)
 
 ---
 ### Changelog
+
+##### version 0.1.1
+- Bugfix on broken flow action 'Say location of tracker'
 
 ##### version 0.1.0 Major pre-release
 - Improved debug logging on 'internal' errors
