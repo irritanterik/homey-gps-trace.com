@@ -1,6 +1,6 @@
 {
   "id": "com.gps-trace",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "compatibility": "*",
   "name": {
     "en": "GPS-Trace",
@@ -138,7 +138,7 @@
               "nl":"afstand"
             },
             "example":{
-              "en":"25.54"
+              "en":"2500"
             }
           }
         ]

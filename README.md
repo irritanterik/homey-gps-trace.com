@@ -1,7 +1,7 @@
 # GPS-Trace
 
-Track your car and phones with the free GPS-Trace.com service. You can find a list of all supported devices [here](http://gps-trace.com/en/hardware). The location of
-your Homey will be added as a default geofence (later). Additional geofences can be added. (later)
+Track your car and phones with the free GPS-Trace.com service. You can find a list of all supported devices [here](http://gps-trace.com/en/hardware). Mobile phones are trackable with the GPS Tag Orange apps for [Android](https://play.google.com/store/apps/details?id=wialon.GPS_Tag_Orange) and [Apple](https://itunes.apple.com/app/gps-trace-orange-gps-tracking/id964462657).
+The location of your Homey will be added as a default geofence. Additional geofences can be added.
 
 ### Speech triggers
  - Dude, where's my car > give's your car location (later)
@@ -18,8 +18,8 @@ your Homey will be added as a default geofence (later). Additional geofences can
  - Tracker is in geofence
 
 ### Action cards
- - Update tracker (if polling is disabled) (later)
  - Say location of tracker
+ - Update tracker (if polling is disabled) (later)
 
 ### Settings
  - General settings
@@ -41,8 +41,21 @@ your Homey will be added as a default geofence (later). Additional geofences can
     3. Minimum time between last new position and trigger 'stops moving'
     4. Icon (later)
 
+## Notes
+- All distance tokens on flow cards contain values in meters (rounded-up)
+- Logging of movement will not survive a reboot. A first new location since reboot will (re)trigger the 'Tracker starts moving' card
+- Reselect geofence names in your flow cards after renaming a geofence, to be sure the geofence is referenced right.
+
 ---
 ### Changelog
+
+##### version 0.2.0
+- Support polygon and rectangular geofences
+- Distance values on flow card tokens are round upward to complete meters  
+
+##### version 0.1.2
+- Added logging on geofence flow trigger evaluations
+- Improved Readme
 
 ##### version 0.1.1
 - Bugfix on broken flow action 'Say location of tracker'
@@ -84,14 +97,13 @@ your Homey will be added as a default geofence (later). Additional geofences can
 
 ---
 ### TO DO (prioritized)
-- Support speech triggers
-- Support polygon geofences
-- Bind devices to precense of users
-- Normalize getAddress responses output in location library (or delete wialon backup)
 - Improve handeling of invalid session error in location library
+- Support speech triggers
+- Bind devices to precense of users
+- Normalize getAddress responses output in location library
 - Warning on account removal about ghost devices and broken flows
 - Get and save tracker hw-type and hw-category
-- Refactor 'updatetracker' in driver.js: centralize effectuation of change
+- Refactor 'updatetracker' in driver.js: centralize effectuation of changed location
 - Improve action card 'say location': trigger other trigger cards if polling was disabled
 - Select an icon on device addition
 - Units selections meters/miles

@@ -1,12 +1,14 @@
 /* global $, google */
 
 var map
+var drawingManager
+var newGeofenceName
 var trackers = {}
 var trackerMarkers = []
 var geofences = {}
-var geofenceMarkers = []
+var geofenceOverlays = []
 var homeyMarkers = []
-var activeGeofenceId = null
+var activeGeofenceId
 
 function initGeofences () {
   createMap()
@@ -26,14 +28,134 @@ function createMap () {
   map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions)
 
   google.maps.event.addListener(map, 'click', function () {
-    if (activeGeofenceId) deselectGeofence()
+    deselectGeofences()
   })
+
+  drawingManager = new google.maps.drawing.DrawingManager({
+    drawingMode: null,
+    drawingControl: false,
+    drawingControlOptions: {
+      position: google.maps.ControlPosition.TOP_CENTER,
+      drawingModes: [
+        google.maps.drawing.OverlayType.CIRCLE,
+        google.maps.drawing.OverlayType.POLYGON,
+        google.maps.drawing.OverlayType.RECTANGLE
+      ]
+    },
+    polygonOptions: {
+      disableDoubleClickZoom: true,
+      editable: false,
+      draggable: false,
+      strokeColor: '#00FF00',
+      strokeOpacity: 0.8,
+      strokeWeight: 2,
+      fillColor: '#00FF00',
+      fillOpacity: 0.25
+    },
+    circleOptions: {
+      disableDoubleClickZoom: true,
+      editable: false,
+      draggable: false,
+      strokeColor: '#FF0000',
+      strokeOpacity: 0.8,
+      strokeWeight: 2,
+      fillColor: '#FF0000',
+      fillOpacity: 0.25
+    },
+    rectangleOptions: {
+      disableDoubleClickZoom: true,
+      editable: false,
+      draggable: false,
+      strokeColor: '#0000FF',
+      strokeOpacity: 0.8,
+      strokeWeight: 2,
+      fillColor: '#0000FF',
+      fillOpacity: 0.25
+    }
+  })
+  google.maps.event.addListener(drawingManager, 'rectanglecomplete', function (rectangle) {
+    drawingManager.setOptions({
+      drawingMode: null,
+      drawingControl: false
+    })
+    var newGeofenceId = new Date().getTime()
+    rectangle.geofenceId = newGeofenceId
+    geofenceOverlays.push(rectangle)
+    var newGeofence = {
+      version: 0,
+      name: newGeofenceName,
+      source: 'USER',
+      type: 'RECTANGLE',
+      rectangle: {},
+      active: true,
+      isHome: false
+    }
+
+    if (!geofences) geofences = {}
+    geofences[newGeofenceId] = newGeofence
+    activeGeofenceId = newGeofenceId
+    saveGeofence(newGeofenceId)
+    // loadGeofences()
+  })
+  google.maps.event.addListener(drawingManager, 'circlecomplete', function (circle) {
+    drawingManager.setOptions({
+      drawingMode: null,
+      drawingControl: false
+    })
+    // drawingManager.setMap(null)
+
+    var newGeofenceId = new Date().getTime()
+    console.log('circlecomplete', newGeofenceId)
+    circle.geofenceId = newGeofenceId
+    geofenceOverlays.push(circle)
+
+    var newGeofence = {
+      version: 0,
+      name: newGeofenceName,
+      source: 'USER',
+      type: 'CIRCLE',
+      circle: {},
+      active: true,
+      isHome: false
+    }
+    if (!geofences) geofences = {}
+    geofences[newGeofenceId] = newGeofence
+    activeGeofenceId = newGeofenceId
+    saveGeofence(newGeofenceId)
+    loadGeofences()
+  })
+  google.maps.event.addListener(drawingManager, 'polygoncomplete', function (polygon) {
+    drawingManager.setOptions({
+      drawingMode: null,
+      drawingControl: false
+    })
+    var newGeofenceId = new Date().getTime()
+    console.log('polygoncomplete', newGeofenceId)
+    polygon.geofenceId = newGeofenceId
+    geofenceOverlays.push(polygon)
+
+    var newGeofence = {
+      version: 0,
+      name: newGeofenceName,
+      source: 'USER',
+      type: 'POLYGON',
+      polygon: {},
+      active: true,
+      isHome: false
+    }
+    if (!geofences) geofences = {}
+    geofences[newGeofenceId] = newGeofence
+    activeGeofenceId = newGeofenceId
+    saveGeofence(newGeofenceId)
+    loadGeofences()
+  })
+  drawingManager.setMap(map)
 }
 
-function getGeofenceMarkersIndexById (geofenceId) {
+function getGeofenceOverlaysIndexById (geofenceId) {
   var geofenceIndex = null
-  geofenceMarkers.forEach(function (geofence, index) {
-    if (geofenceMarkers[index].geofenceId == geofenceId) { // eslint-disable-line
+  geofenceOverlays.forEach(function (geofence, index) {
+    if (geofenceOverlays[index].geofenceId == geofenceId) { // eslint-disable-line
       geofenceIndex = index
     }
   })
@@ -66,11 +188,11 @@ function loadHomeyLocation () {
 function loadGeofences () {
   Homey.get('geofences', function (error, result) {
     if (error) return console.error(error)
-    if (geofenceMarkers) {
-      for (var i = 0; i < geofenceMarkers.length; i++) {
-        geofenceMarkers[i].setMap(null)
+    if (geofenceOverlays) {
+      for (var i = 0; i < geofenceOverlays.length; i++) {
+        geofenceOverlays[i].setMap(null)
       }
-      geofenceMarkers.length = 0
+      geofenceOverlays.length = 0
     }
     if (!result) return console.warn('No geofences to load!')
     geofences = result
@@ -93,7 +215,7 @@ function loadGeofences () {
           fillOpacity: 0.25,
           radius: geofence.circle.radius
         })
-        geofenceMarkers.push(circle)
+        geofenceOverlays.push(circle)
         google.maps.event.addListener(circle, 'radius_changed', function () {
           saveGeofence(circle.geofenceId)
         })
@@ -109,10 +231,107 @@ function loadGeofences () {
           event.stop()
         })
       } // end if circle
+      if (geofence.type === 'POLYGON') {
+        var polygon = new google.maps.Polygon({
+          geofenceId: geofenceId,
+          isDragging: false,
+          disableDoubleClickZoom: true,
+          editable: false,
+          draggable: false,
+          map: map,
+          paths: geofence.polygon.path,
+          strokeColor: '#00FF00',
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+          fillColor: '#00FF00',
+          fillOpacity: 0.25
+        })
+        geofenceOverlays.push(polygon)
+        // TODO: Add events on edit and drag
+        google.maps.event.addListener(polygon, 'rightclick', function (mev) {
+          console.log('rightclick')
+          if (mev.vertex != null && polygon.getPath().getLength() > 3) {
+            this.getPath().removeAt(mev.vertex)
+          }
+          saveGeofence(polygon.geofenceId)
+        })
+        google.maps.event.addListener(polygon.getPath(), 'set_at', function () {
+          console.log('set_at')
+          if (!polygon.isDragging) saveGeofence(polygon.geofenceId)
+        })
+        google.maps.event.addListener(polygon.getPath(), 'insert_at', function () {
+          console.log('insert_at')
+          saveGeofence(polygon.geofenceId)
+        })
+        google.maps.event.addListener(polygon.getPath(), 'remove_at', function () {
+          console.log('remove_at')
+          saveGeofence(polygon.geofenceId)
+        })
+        google.maps.event.addListener(polygon, 'dragstart', function () {
+          console.log('dragstart')
+          polygon.isDragging = true
+        })
+        google.maps.event.addListener(polygon, 'dragend', function () {
+          console.log('dragend')
+          polygon.isDragging = false
+          saveGeofence(polygon.geofenceId)
+        })
+        google.maps.event.addListener(polygon, 'click', function () {
+          selectGeofence(polygon.geofenceId)
+        })
+        google.maps.event.addListener(polygon, 'dblclick', function (event) {
+          selectGeofence(polygon.geofenceId)
+          renameGeofence(polygon.geofenceId)
+          event.stop()
+        })
+      } // end if polygon
+      if (geofence.type === 'RECTANGLE') {
+        var rectangle = new google.maps.Rectangle({
+          geofenceId: geofenceId,
+          isDragging: false,
+          disableDoubleClickZoom: true,
+          editable: false,
+          draggable: false,
+          map: map,
+          bounds: {
+            north: geofence.rectangle.path[0].lat,
+            south: geofence.rectangle.path[2].lat,
+            east: geofence.rectangle.path[0].lng,
+            west: geofence.rectangle.path[2].lng
+          },
+          strokeColor: '#0000FF',
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+          fillColor: '#0000FF',
+          fillOpacity: 0.25
+        })
+        geofenceOverlays.push(rectangle)
+        google.maps.event.addListener(rectangle, 'bounds_changed', function () {
+          console.log('bounds_changed')
+          if (!rectangle.isDragging) saveGeofence(rectangle.geofenceId)
+        })
+        google.maps.event.addListener(rectangle, 'dragstart', function () {
+          console.log('dragstart')
+          rectangle.isDragging = true
+        })
+        google.maps.event.addListener(rectangle, 'dragend', function () {
+          console.log('dragend')
+          rectangle.isDragging = false
+          saveGeofence(rectangle.geofenceId)
+        })
+        google.maps.event.addListener(rectangle, 'click', function () {
+          selectGeofence(rectangle.geofenceId)
+        })
+        google.maps.event.addListener(rectangle, 'dblclick', function (event) {
+          selectGeofence(rectangle.geofenceId)
+          renameGeofence(rectangle.geofenceId)
+          event.stop()
+        })
+      } // end if rectangle
     })
     if (geofences) {
       if (!activeGeofenceId) {
-        $('#geofences').val(geofenceMarkers[0].geofenceId)
+        $('#geofences').val(geofenceOverlays[0].geofenceId)
       } else {
         $('#geofences').val(activeGeofenceId)
       }
@@ -123,7 +342,7 @@ function loadGeofences () {
 function geofenceNameExists (checkName) {
   var result = false
   $.each(geofences, function (index, geofence) {
-    if (geofence.name.toUpperCase() === checkName.toUpperCase()) {
+    if (geofence.name.toString().toUpperCase() === checkName.toString().toUpperCase()) {
       result = index
       return
     }
@@ -134,7 +353,8 @@ function geofenceNameExists (checkName) {
 function renameGeofence (geofenceId) {
   var newName = window.prompt(__('settings.geofences.labelNameGeofence'), geofences[geofenceId].name)
   if (!newName) return
-  if (geofenceNameExists(newName) !== geofenceId) {
+  var renameCheck = geofenceNameExists(newName)
+  if (renameCheck && renameCheck !== geofenceId) {
     window.alert(__('settings.geofences.errorGeofenceNameUnique'))
     return renameGeofence(geofenceId)
   }
@@ -144,28 +364,50 @@ function renameGeofence (geofenceId) {
   saveGeofence(geofenceId)
 }
 
-function deselectGeofence () {
-  if (!activeGeofenceId) return
-  var index = getGeofenceMarkersIndexById(activeGeofenceId)
-  geofenceMarkers[index].setEditable(false)
+function deselectGeofences () {
+  $.each(geofenceOverlays, function (index) {
+    geofenceOverlays[index].setEditable(false)
+    geofenceOverlays[index].setDraggable(false)
+  })
   activeGeofenceId = null
 }
 
 function selectGeofence (geofenceId) {
-  if (activeGeofenceId) deselectGeofence(activeGeofenceId)
+  deselectGeofences(activeGeofenceId)
   activeGeofenceId = geofenceId
   $('#geofences').val(activeGeofenceId)
-  var markerIndex = getGeofenceMarkersIndexById(activeGeofenceId)
-  geofenceMarkers[markerIndex].setEditable(true)
+  var index = getGeofenceOverlaysIndexById(activeGeofenceId)
+  geofenceOverlays[index].setEditable(true)
+  if (geofences[geofenceId].type === 'POLYGON' ||
+      geofences[geofenceId].type === 'RECTANGLE') {
+    geofenceOverlays[index].setDraggable(true)
+  }
 }
 
 function saveGeofence (geofenceId) {
   if (geofenceId) {
-    var markerIndex = getGeofenceMarkersIndexById(geofenceId)
+    var index = getGeofenceOverlaysIndexById(geofenceId)
     if (geofences[geofenceId].type === 'CIRCLE') {
-      geofences[geofenceId].circle.center.lat = geofenceMarkers[markerIndex].center.lat()
-      geofences[geofenceId].circle.center.lng = geofenceMarkers[markerIndex].center.lng()
-      geofences[geofenceId].circle.radius = geofenceMarkers[markerIndex].radius
+      geofences[geofenceId].circle.center = {
+        lat: geofenceOverlays[index].getCenter().lat(),
+        lng: geofenceOverlays[index].getCenter().lng()
+      }
+      geofences[geofenceId].circle.radius = geofenceOverlays[index].getRadius()
+    }
+    if (geofences[geofenceId].type === 'POLYGON') {
+      var path = []
+      geofenceOverlays[index].getPath().getArray().forEach(function (point) {
+        path.push({lat: point.lat(), lng: point.lng()})
+      })
+      geofences[geofenceId].polygon.path = path
+    }
+    if (geofences[geofenceId].type === 'RECTANGLE') {
+      var path = []
+      path.push({lat: geofenceOverlays[index].getBounds().getNorthEast().lat(), lng: geofenceOverlays[index].getBounds().getNorthEast().lng()})
+      path.push({lat: geofenceOverlays[index].getBounds().getNorthEast().lat(), lng: geofenceOverlays[index].getBounds().getSouthWest().lng()})
+      path.push({lat: geofenceOverlays[index].getBounds().getSouthWest().lat(), lng: geofenceOverlays[index].getBounds().getSouthWest().lng()})
+      path.push({lat: geofenceOverlays[index].getBounds().getSouthWest().lat(), lng: geofenceOverlays[index].getBounds().getNorthEast().lng()})
+      geofences[geofenceId].rectangle.path = path
     }
   }
   Homey.set('geofences', geofences)
@@ -181,7 +423,7 @@ function centerMap (markersCollection) {
 }
 
 function deleteGeofence () {
-  deselectGeofence()
+  deselectGeofences()
   delete geofences[$('#geofences').val()]
   if ($.isEmptyObject(geofences)) geofences = null
   saveGeofence()
@@ -189,41 +431,24 @@ function deleteGeofence () {
 }
 
 function addGeofence () {
-  var newName = window.prompt(__('settings.geofences.labelNameGeofence'), __('settings.geofences.newGeofenceName'))
-  if (!newName) return
-  if (geofenceNameExists(newName)) {
+  newGeofenceName = window.prompt(__('settings.geofences.labelNameGeofence'), __('settings.geofences.newGeofenceName'))
+  if (!newGeofenceName) return
+  if (geofenceNameExists(newGeofenceName)) {
     window.alert(__('settings.geofences.errorGeofenceNameUnique'))
     return addGeofence()
   }
-  var newGeofenceId = new Date().getTime()
-  var newGeofence = {
-    version: 0,
-    name: newName,
-    source: 'USER',
-    type: 'CIRCLE',
-    circle: {
-      radius: 50,
-      center: {
-        lat: map.center.lat(),
-        lng: map.center.lng()
-      }
-    },
-    active: true,
-    isHome: false
-  }
-  if (!geofences) geofences = {}
-  geofences[newGeofenceId] = newGeofence
-  activeGeofenceId = newGeofenceId
-  saveGeofence()
-  loadGeofences()
+  drawingManager.setOptions({
+    drawingMode: null,
+    drawingControl: true
+  })
 }
 
 function changeGeofenceList () {
-  deselectGeofence()
+  deselectGeofences()
   var geofenceId = $('#geofences').val()
-  var index = getGeofenceMarkersIndexById(geofenceId)
+  var index = getGeofenceOverlaysIndexById(geofenceId)
   if (geofences[geofenceId].type === 'CIRCLE') {
-    map.setCenter(geofenceMarkers[index].getCenter())
+    map.setCenter(geofenceOverlays[index].getCenter())
   }
 }
 
@@ -242,6 +467,9 @@ function showTrackersChange () {
 function showTrackers () {
   trackerMarkers.forEach(function (marker) {
     marker.setMap(map)
+    if (trackers[marker.trackerId].moving) {
+      marker.setAnimation(google.maps.Animation.BOUNCE)
+    }
   })
   centerMap(trackerMarkers.concat(homeyMarkers))
 }
@@ -283,6 +511,13 @@ function subscribeTrackerUpdates () {
     $.each(trackerMarkers, function (index) {
       if (trackerMarkers[index].trackerId === data.trackerId) {
         trackerMarkers[index].setPosition(new google.maps.LatLng(data.location.lat, data.location.lng))
+        if (data.moving) {
+          trackerMarkers[index].setAnimation(google.maps.Animation.BOUNCE)
+        } else {
+          if (trackerMarkers[index].getAnimation() !== null) {
+            trackerMarkers[index].setAnimation(null)
+          }
+        }
       }
     })
   })

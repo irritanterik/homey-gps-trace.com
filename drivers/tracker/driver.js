@@ -3,6 +3,7 @@
 
 var Location = require('../../lib/location.js')
 var Util = require('../../lib/util.js')
+var Inside = require('point-in-polygon')
 var tracking = null
 var trackers = {}
 var trackerTimeoutObjects = {}
@@ -84,6 +85,23 @@ function checkGeofencesForTracker (trackerId, notrigger) {
       )
       trackerInGeofence = distance < geofences[geofenceId].circle.radius
     }
+    if (geofences[geofenceId].type === 'POLYGON') {
+      var trackerPositionShort = [trackers[trackerId].location.lat, trackers[trackerId].location.lng]
+      var geofencePathShort = []
+      geofences[geofenceId].polygon.path.forEach(function (point) {
+        geofencePathShort.push([point.lat, point.lng])
+      })
+      geofencePathShort.push([geofences[geofenceId].polygon.path[0].lat,geofences[geofenceId].polygon.path[0].lng])
+      trackerInGeofence = Inside(trackerPositionShort, geofencePathShort)
+    }
+    if (geofences[geofenceId].type === 'RECTANGLE') {
+      var trackerPositionShort = [trackers[trackerId].location.lat, trackers[trackerId].location.lng]
+      var geofencePathShort = []
+      geofences[geofenceId].rectangle.path.forEach(function (point) {
+        geofencePathShort.push([point.lat, point.lng])})
+      geofencePathShort.push([geofences[geofenceId].rectangle.path[0].lat, geofences[geofenceId].rectangle.path[0].lng])
+      trackerInGeofence = Inside(trackerPositionShort, geofencePathShort)
+    }
     if ((trackerInGeofence) && (!trackerWasInGeofence)) {
       trackers[trackerId].geofences.push(geofenceId)
       if (!notrigger) {
@@ -131,12 +149,13 @@ function stopMoving (trackerId) {
   // update tracker
   trackers[trackerId].moving = false
   delete trackers[trackerId].route
+  Homey.manager('api').realtime('gpsLocation', trackers[trackerId])
 
   // handle flows
   var tracker_tokens = {
     start_location: Util.createAddressSpeech(route.start.place, route.start.city),
     stop_location: Util.createAddressSpeech(route.end.place, route.end.city),
-    distance: route.distance
+    distance: Math.ceil(route.distance) || 0
   }
 
   Homey.manager('flow').triggerDevice(
@@ -247,7 +266,7 @@ function initiateTracking () {
         'tracker_start_moving',
         {
           address: Util.createAddressSpeech(previousLocation.place, previousLocation.city),
-          distance: data.distance
+          distance: Math.ceil(data.distance) || 0
         },
         null,
         {id: trackerId},
@@ -264,7 +283,7 @@ function initiateTracking () {
         'tracker_moved',
         {
           address: Util.createAddressSpeech(place, city),
-          distance: data.distance
+          distance: Math.ceil(data.distance) || 0
         },
         null,
         {id: trackerId},
