@@ -4,6 +4,7 @@
 var Location = require('../../lib/location.js')
 var Util = require('../../lib/util.js')
 var Inside = require('point-in-polygon')
+var retryTrackingTimeoutId = null
 var tracking = null
 var trackers = {}
 var trackerTimeoutObjects = {}
@@ -52,17 +53,17 @@ function GpsDebugLog (message, data) {
   if (!debugLog) debugLog = []
   if (!data) data = null
 
-  // Push new event, remove items over 30 and save new array
+  // Push new event, remove items over 100 and save new array
   Homey.manager('api').realtime('gpsLog', {datetime: new Date(), message: message, data: data})
   debugLog.push({datetime: new Date(), message: message, data: data})
-  if (debugLog.length > 30) debugLog.splice(0, 1)
+  if (debugLog.length > 100) debugLog.splice(0, 1)
   Homey.manager('settings').set('gpsLog', debugLog)
   if (data == null) {
     Homey.log(Util.epochToTimeFormatter(), message)
   } else {
     Homey.log(Util.epochToTimeFormatter(), message, data)
   }
-}
+} // function GpsDebugLog
 
 function checkGeofences (notrigger) {
   Object.keys(trackers).forEach(function (trackerId) {
@@ -84,22 +85,18 @@ function checkGeofencesForTracker (trackerId, notrigger) {
         'M'
       )
       trackerInGeofence = distance < geofences[geofenceId].circle.radius
-    }
-    if (geofences[geofenceId].type === 'POLYGON') {
+    } else {
       var trackerPositionShort = [trackers[trackerId].location.lat, trackers[trackerId].location.lng]
       var geofencePathShort = []
-      geofences[geofenceId].polygon.path.forEach(function (point) {
-        geofencePathShort.push([point.lat, point.lng])
-      })
-      geofencePathShort.push([geofences[geofenceId].polygon.path[0].lat,geofences[geofenceId].polygon.path[0].lng])
-      trackerInGeofence = Inside(trackerPositionShort, geofencePathShort)
-    }
-    if (geofences[geofenceId].type === 'RECTANGLE') {
-      var trackerPositionShort = [trackers[trackerId].location.lat, trackers[trackerId].location.lng]
-      var geofencePathShort = []
-      geofences[geofenceId].rectangle.path.forEach(function (point) {
-        geofencePathShort.push([point.lat, point.lng])})
-      geofencePathShort.push([geofences[geofenceId].rectangle.path[0].lat, geofences[geofenceId].rectangle.path[0].lng])
+      if (geofences[geofenceId].type === 'POLYGON') {
+        geofences[geofenceId].polygon.path.forEach(function (point) {
+          geofencePathShort.push([point.lat, point.lng])
+        })
+      } else {
+        geofences[geofenceId].rectangle.path.forEach(function (point) {
+          geofencePathShort.push([point.lat, point.lng])
+        })
+      }
       trackerInGeofence = Inside(trackerPositionShort, geofencePathShort)
     }
     if ((trackerInGeofence) && (!trackerWasInGeofence)) {
@@ -140,9 +137,9 @@ function stopMoving (trackerId) {
   if (!trackers[trackerId].route) return
 
   // create route object for persistancy
-  var route = trackers[trackerId].route || {}
+  var route = trackers[trackerId].route
   route.end = trackers[trackerId].location
-  route.end.time = new Date().getTime()
+  route.end.time = trackers[trackerId].timeLastUpdate
   route.trackerId = trackerId
 
   // TODO: Read setting and route object to collection for geofence analysis
@@ -170,15 +167,17 @@ function stopMoving (trackerId) {
 }
 
 function initiateTracking () {
+  if (retryTrackingTimeoutId) clearTimeout(retryTrackingTimeoutId)
   debugLog = Homey.manager('settings').get('gpslog')
   debugSetting = true
+  retryTrackingTimeoutId = null
 
   GpsDebugLog('######### GPS TRACKING ## initiateTracking #########################')
   if (tracking) tracking.stopTracking()
   tracking = null
 
-  var settings = Homey.manager('settings').get('gpsaccount')
   geofences = Homey.manager('settings').get('geofences')
+  var settings = Homey.manager('settings').get('gpsaccount')
   if (!settings) return GpsDebugLog('  no settings!')
   if (!settings.debug) debugSetting = false
   if (!Object.keys(trackers).length) return GpsDebugLog('  no devices to track!')
@@ -205,6 +204,15 @@ function initiateTracking () {
   })
   tracking.on('error', function (error) {
     GpsDebugLog('event: error', error)
+  })
+  tracking.on('tracking_terminated', function (reason) {
+    if (tracking) {
+      GpsDebugLog('event: tracking_terminated, will retry in 10 minutes.', reason)
+      tracking = null
+      if (!retryTrackingTimeoutId) {
+        retryTrackingTimeoutId = setTimeout(initiateTracking, 10 * 60 * 1000)
+      }
+    }
   })
   tracking.on('message', function (trackerId, data) {
     GpsDebugLog('event: message', {id: trackerId, distance: data.distance})
@@ -294,7 +302,7 @@ function initiateTracking () {
     }
   })
   tracking.startTracking(Object.keys(trackers))
-} // End of initiateTracking
+} // function initiateTracking
 
 var self = {
   init: function (devices_data, callback) {

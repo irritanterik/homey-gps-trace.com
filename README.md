@@ -52,6 +52,9 @@ The location of your Homey will be added as a default geofence. Additional geofe
 ##### version 0.2.0
 - Support polygon and rectangular geofences
 - Distance values on flow card tokens are round upward to complete meters  
+- Improved handeling of invalid session error in location library (try to re-establish session)
+- Improved handeling of externally changed password (prospone tracking for 10 minutes)
+- Improved handeling of lost network connection location library (prospone tracking for 10 minutes after 2 minutes of connection issues)
 
 ##### version 0.1.2
 - Added logging on geofence flow trigger evaluations
@@ -97,9 +100,8 @@ The location of your Homey will be added as a default geofence. Additional geofe
 
 ---
 ### TO DO (prioritized)
-- Improve handeling of invalid session error in location library
 - Support speech triggers
-- Bind devices to precense of users
+- Bind devices to precense of users (can be done with standard flow for now)
 - Normalize getAddress responses output in location library
 - Warning on account removal about ghost devices and broken flows
 - Get and save tracker hw-type and hw-category
@@ -111,3 +113,7 @@ The location of your Homey will be added as a default geofence. Additional geofe
 - Extend API
 - PUT new positions for a tracker
 - Add mobile card with mini-map with position (not yet supported by API)
+- Save trips
+- Show trips start and end points on map in Settings
+- Show trips routes on map in Settings
+- Automatic create geofences based on start and endpoint collections

@@ -150,6 +150,12 @@ function createMap () {
     loadGeofences()
   })
   drawingManager.setMap(map)
+
+  google.maps.Polygon.prototype.getBounds = function () {
+    var bounds = new google.maps.LatLngBounds()
+    this.getPath().forEach(function (element, index) { bounds.extend(element) })
+    return bounds
+  }
 }
 
 function getGeofenceOverlaysIndexById (geofenceId) {
@@ -387,6 +393,7 @@ function selectGeofence (geofenceId) {
 function saveGeofence (geofenceId) {
   if (geofenceId) {
     var index = getGeofenceOverlaysIndexById(geofenceId)
+    var path = []
     if (geofences[geofenceId].type === 'CIRCLE') {
       geofences[geofenceId].circle.center = {
         lat: geofenceOverlays[index].getCenter().lat(),
@@ -395,14 +402,12 @@ function saveGeofence (geofenceId) {
       geofences[geofenceId].circle.radius = geofenceOverlays[index].getRadius()
     }
     if (geofences[geofenceId].type === 'POLYGON') {
-      var path = []
       geofenceOverlays[index].getPath().getArray().forEach(function (point) {
         path.push({lat: point.lat(), lng: point.lng()})
       })
       geofences[geofenceId].polygon.path = path
     }
     if (geofences[geofenceId].type === 'RECTANGLE') {
-      var path = []
       path.push({lat: geofenceOverlays[index].getBounds().getNorthEast().lat(), lng: geofenceOverlays[index].getBounds().getNorthEast().lng()})
       path.push({lat: geofenceOverlays[index].getBounds().getNorthEast().lat(), lng: geofenceOverlays[index].getBounds().getSouthWest().lng()})
       path.push({lat: geofenceOverlays[index].getBounds().getSouthWest().lat(), lng: geofenceOverlays[index].getBounds().getSouthWest().lng()})
@@ -447,9 +452,7 @@ function changeGeofenceList () {
   deselectGeofences()
   var geofenceId = $('#geofences').val()
   var index = getGeofenceOverlaysIndexById(geofenceId)
-  if (geofences[geofenceId].type === 'CIRCLE') {
-    map.setCenter(geofenceOverlays[index].getCenter())
-  }
+  map.setCenter(geofenceOverlays[index].getBounds().getCenter())
 }
 
 function editGeofence () {
