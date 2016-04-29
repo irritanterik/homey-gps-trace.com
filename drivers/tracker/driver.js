@@ -23,7 +23,6 @@ var debugLog = []
 //   geofences [1460492122638, 1460492122639],
 //   timeLastUpdate: 1460492122638,
 //   timeLastTrigger: 1460492122638,
-//   sumDistanceLastTrigger: 12313,
 //   moving: true,
 //   route: {
 //     distance: 13,
@@ -185,7 +184,6 @@ function initiateTracking () {
 
   Object.keys(trackers).forEach(function (trackerId) {
     trackers[trackerId].timeLastTrigger = 0
-    trackers[trackerId].sumDistanceLastTrigger = 0
     // clear route tracking if tracker is not moving or never initiated before
     if (trackers[trackerId].moving !== true) {
       trackers[trackerId].moving = null // picked on location event
@@ -232,10 +230,9 @@ function initiateTracking () {
       lng: data.x
     }
     trackers[trackerId].timeLastUpdate = data.t * 1000
-    trackers[trackerId].sumDistanceLastTrigger += data.distance
 
     var timeConstraint = (trackers[trackerId].timeLastUpdate - trackers[trackerId].timeLastTrigger) < (trackers[trackerId].settings.retriggerRestrictTime * 1000)
-    var distanceConstraint = trackers[trackerId].sumDistanceLastTrigger < trackers[trackerId].settings.retriggerRestrictDistance
+    var distanceConstraint = data.distance < trackers[trackerId].settings.retriggerRestrictDistance
 
     // ignore initial location on (re)initiation
     if (wasMoving == null) {
@@ -286,7 +283,6 @@ function initiateTracking () {
 
     if (!timeConstraint && !distanceConstraint) {
       trackers[trackerId].timeLastTrigger = data.t * 1000
-      trackers[trackerId].sumDistanceLastTrigger = 0
       Homey.manager('flow').triggerDevice(
         'tracker_moved',
         {

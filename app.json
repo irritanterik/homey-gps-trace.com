@@ -1,14 +1,14 @@
 {
   "id": "com.gps-trace",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "compatibility": "*",
   "name": {
     "en": "GPS-Trace",
     "nl": "GPS-Trace"
   },
   "description":{
-     "en":"Track your car and phones with GPS-Trace.com",
-     "nl":"Volg je auto en telefoons met GPS-Trace.com"
+     "en":"Track phones and vehicles with GPS-Trace.com",
+     "nl":"Volg je telefoons en auto met GPS-Trace.com"
   },
   "author":{
      "name":"Erik van Dongen",
