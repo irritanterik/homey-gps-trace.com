@@ -67,7 +67,7 @@ function GpsDebugLog (message, data) {
 function checkGeofences (notrigger) {
   if (!trackers) return
   Object.keys(trackers).forEach(function (trackerId) {
-     checkGeofencesForTracker(trackerId, notrigger)
+    checkGeofencesForTracker(trackerId, notrigger)
   })
 }
 
@@ -141,6 +141,10 @@ function stopMoving (trackerId) {
   route.end = trackers[trackerId].location
   route.end.time = trackers[trackerId].timeLastUpdate
   route.trackerId = trackerId
+
+  var allRoutes = Homey.manager('settings').get('gpsRoutes') || []
+  allRoutes.push(route)
+  Homey.manager('settings').set('gpsRoutes', allRoutes)
 
   // TODO: Read setting and route object to collection for geofence analysis
   // update tracker
@@ -257,7 +261,7 @@ function initiateTracking () {
     checkGeofencesForTracker(trackerId)
     if (wasMoving) {
       if (!trackers[trackerId].route) {
-        GpsDebugLog('tracker was moving, but without route object', {id: trackerId, tracker: trackers[trackerId])
+        GpsDebugLog('tracker was moving, but without route object', {id: trackerId, tracker: trackers[trackerId]})
         trackers[trackerId].route = {
           distance: data.distance,
           start: previousLocation
