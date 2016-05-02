@@ -7,9 +7,16 @@ function initLogging () {
   })
 }
 
+function clearGpsLog () {
+  Homey.set('gpsLog', [{datetime: new Date(), message: 'Log cleared', data: null}], function (error, result) {
+    if (error) return console.error(error)
+    firstLoadLog()
+  })
+}
+
 function firstLoadLog () {
   $('tr.logentry').remove()
-  Homey.get('gpslog', function (error, value) {
+  Homey.get('gpsLog', function (error, value) {
     if (error) return console.error(error)
     if (value != null) {
       $.each(value, function (index, obj) {

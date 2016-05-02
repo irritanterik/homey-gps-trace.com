@@ -95,7 +95,7 @@ function createMap () {
     geofences[newGeofenceId] = newGeofence
     activeGeofenceId = newGeofenceId
     saveGeofence(newGeofenceId)
-    // loadGeofences()
+    loadGeofences()
   })
   google.maps.event.addListener(drawingManager, 'circlecomplete', function (circle) {
     drawingManager.setOptions({

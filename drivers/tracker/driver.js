@@ -56,17 +56,18 @@ function GpsDebugLog (message, data) {
   Homey.manager('api').realtime('gpsLog', {datetime: new Date(), message: message, data: data})
   debugLog.push({datetime: new Date(), message: message, data: data})
   if (debugLog.length > 100) debugLog.splice(0, 1)
-  Homey.manager('settings').set('gpsLog', debugLog)
   if (data == null) {
     Homey.log(Util.epochToTimeFormatter(), message)
   } else {
     Homey.log(Util.epochToTimeFormatter(), message, data)
   }
+  Homey.manager('settings').set('gpsLog', debugLog)
 } // function GpsDebugLog
 
 function checkGeofences (notrigger) {
+  if (!trackers) return
   Object.keys(trackers).forEach(function (trackerId) {
-    checkGeofencesForTracker(trackerId, notrigger)
+     checkGeofencesForTracker(trackerId, notrigger)
   })
 }
 
@@ -167,7 +168,7 @@ function stopMoving (trackerId) {
 
 function initiateTracking () {
   if (retryTrackingTimeoutId) clearTimeout(retryTrackingTimeoutId)
-  debugLog = Homey.manager('settings').get('gpslog')
+  debugLog = Homey.manager('settings').get('gpsLog')
   debugSetting = true
   retryTrackingTimeoutId = null
 
@@ -218,9 +219,9 @@ function initiateTracking () {
   tracking.on('location', function (trackerId, data) {
     var previousLocation = trackers[trackerId].location
     var place = data.address.cycleway || data.address.road || data.address.retail || data.address.footway || data.address.address29 || data.address.path || data.address.pedestrian
-    var city = data.address.town || data.address.city
+    var city = data.address.city || data.address.town || data.address.village
     var wasMoving = trackers[trackerId].moving
-    GpsDebugLog('event: location', {id: trackerId, place: place, city: city, distance: data.distance})
+    GpsDebugLog('event: location', {id: trackerId, place: place, city: city, distance: data.distance, wasMoving: wasMoving})
     if (place == null || city == null) { GpsDebugLog('no address translation found', data.address) }
 
     trackers[trackerId].location = {
@@ -256,9 +257,14 @@ function initiateTracking () {
     checkGeofencesForTracker(trackerId)
     if (wasMoving) {
       if (!trackers[trackerId].route) {
-        trackers[trackerId].route = {start: previousLocation}
+        GpsDebugLog('tracker was moving, but without route object', {id: trackerId})
+        trackers[trackerId].route = {
+          distance: data.distance,
+          start: previousLocation
+        }
+      } else {
+        trackers[trackerId].route.distance += data.distance
       }
-      trackers[trackerId].route.distance += data.distance
     }
 
     if (!wasMoving && !distanceConstraint) {

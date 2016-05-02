@@ -26,7 +26,6 @@ The location of your Homey will be added as a default geofence. Additional geofe
     - Account details
       - Enable polling
       - Enable debug logging
-      - Units meters/miles selection (later)
     - Geofences
       - Add new geofences
       - Edit Geofences
@@ -48,6 +47,14 @@ The location of your Homey will be added as a default geofence. Additional geofe
 
 ---
 ### Changelog
+
+##### version 0.2.1
+- Bugfix on movement trigger while distance was within constraint
+- Bugfix and additional logging on stop moving trigger while distance was 0m
+- Bugfix on settings screen where square geofence was not editable after drawing
+- Improvement on resolving city value when address contained a village name
+- Improvement on initializing geofences when no trackers has been configured yet
+- Logging now can be cleared on the settings screen
 
 ##### version 0.2.0
 - Support polygon and rectangular geofences
@@ -108,7 +115,7 @@ The location of your Homey will be added as a default geofence. Additional geofe
 - Refactor 'updatetracker' in driver.js: centralize effectuation of changed location
 - Improve action card 'say location': trigger other trigger cards if polling was disabled
 - Select an icon on device addition
-- Units selections meters/miles
+- Units selections meters/miles (based on Homey.manager('i18n'))
 - Add driver for external API based trackers (push)
 - Extend API
 - PUT new positions for a tracker

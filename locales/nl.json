@@ -39,7 +39,8 @@
 		"debug": {
 			"title": "Logging",
 			"thDateTime": "Datum en tijd",
-			"thMessage": "Bericht"
+			"thMessage": "Bericht",
+      "buttonClear": "Log verwijderen"
 		}
 	},
 	"pair": {

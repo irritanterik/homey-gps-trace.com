@@ -51,7 +51,8 @@
 		"debug": {
 			"title": "Logging",
 			"thDateTime": "Date and time",
-			"thMessage": "Message"
+			"thMessage": "Message",
+      "buttonClear": "Clear logging"
 		}
 	},
 	"pair": {
