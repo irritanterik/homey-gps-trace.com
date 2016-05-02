@@ -257,7 +257,7 @@ function initiateTracking () {
     checkGeofencesForTracker(trackerId)
     if (wasMoving) {
       if (!trackers[trackerId].route) {
-        GpsDebugLog('tracker was moving, but without route object', {id: trackerId})
+        GpsDebugLog('tracker was moving, but without route object', {id: trackerId, tracker: trackers[trackerId])
         trackers[trackerId].route = {
           distance: data.distance,
           start: previousLocation
