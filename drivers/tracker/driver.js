@@ -225,7 +225,6 @@ function initiateTracking () {
     var place = data.address.cycleway || data.address.road || data.address.retail || data.address.footway || data.address.address29 || data.address.path || data.address.pedestrian
     var city = data.address.city || data.address.town || data.address.village
     var wasMoving = trackers[trackerId].moving
-    GpsDebugLog('event: location', {id: trackerId, place: place, city: city, distance: data.distance, wasMoving: wasMoving})
     if (place == null || city == null) { GpsDebugLog('no address translation found', data.address) }
 
     trackers[trackerId].location = {
@@ -243,13 +242,11 @@ function initiateTracking () {
     if (wasMoving == null) {
       trackers[trackerId].moving = false
       checkGeofencesForTracker(trackerId, true)
+      GpsDebugLog('initial location for tracker', {id: trackerId, place: place, city: city})
       return
     }
 
     // postpone stopmoving trigger
-    trackers[trackerId].moving = true
-    Homey.manager('api').realtime('gpsLocation', trackers[trackerId])
-
     if (trackerTimeoutObjects[trackerId]) clearTimeout(trackerTimeoutObjects[trackerId])
     trackerTimeoutObjects[trackerId] = setTimeout(
       stopMoving,
@@ -258,8 +255,10 @@ function initiateTracking () {
     )
 
     // handle flows
+    GpsDebugLog('event: location', {id: trackerId, place: place, city: city, distance: data.distance, wasMoving: wasMoving, timeConstraint: timeConstraint, distanceConstraint: distanceConstraint})
     checkGeofencesForTracker(trackerId)
     if (wasMoving) {
+      // next if part is temp fix. Should be removed when bug final fixed
       if (!trackers[trackerId].route) {
         GpsDebugLog('tracker was moving, but without route object', {id: trackerId, tracker: trackers[trackerId]})
         trackers[trackerId].route = {
@@ -272,6 +271,7 @@ function initiateTracking () {
     }
 
     if (!wasMoving && !distanceConstraint) {
+      trackers[trackerId].moving = true
       trackers[trackerId].route = {
         distance: data.distance,
         start: previousLocation
@@ -306,6 +306,9 @@ function initiateTracking () {
         }
       )
     }
+
+    Homey.manager('api').realtime('gpsLocation', trackers[trackerId])
+
   })
   tracking.startTracking(Object.keys(trackers))
 } // function initiateTracking
@@ -435,11 +438,10 @@ var self = {
     trackers[device.id].name = name
     callback()
   },
-  deleted: function (device, callback) {
+  deleted: function (device) {
     GpsDebugLog('delete tracker', device)
     delete trackers[device.id]
     initiateTracking()
-    callback()
   },
   pair: function (socket) {
     var settings = Homey.manager('settings').get('gpsaccount')

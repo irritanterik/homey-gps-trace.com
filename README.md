@@ -50,6 +50,7 @@ The location of your Homey will be added as a default geofence. Additional geofe
 
 ##### version 0.2.1
 - Bugfix on movement trigger while distance was within constraint
+- Bugfix on not triggering a tracker start moving   
 - Bugfix and additional logging on stop moving trigger while distance was 0m
 - Bugfix on settings screen where square geofence was not editable after drawing
 - Improvement on resolving city value when address contained a village name
