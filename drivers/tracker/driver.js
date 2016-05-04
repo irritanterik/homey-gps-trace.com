@@ -300,7 +300,7 @@ function initiateTracking () {
     }
 
     // postpone stopmoving trigger
-    if (tracker[trackerId].moving) {
+    if (trackers[trackerId].moving) {
       if (trackerTimeoutObjects[trackerId]) clearTimeout(trackerTimeoutObjects[trackerId])
       trackerTimeoutObjects[trackerId] = setTimeout(
         stopMoving,
