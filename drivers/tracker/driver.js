@@ -246,14 +246,6 @@ function initiateTracking () {
       return
     }
 
-    // postpone stopmoving trigger
-    if (trackerTimeoutObjects[trackerId]) clearTimeout(trackerTimeoutObjects[trackerId])
-    trackerTimeoutObjects[trackerId] = setTimeout(
-      stopMoving,
-      trackers[trackerId].settings.stoppedMovingTimeout * 1000,
-      trackerId
-    )
-
     // handle flows
     GpsDebugLog('event: location', {id: trackerId, place: place, city: city, distance: data.distance, wasMoving: wasMoving, timeConstraint: timeConstraint, distanceConstraint: distanceConstraint})
     checkGeofencesForTracker(trackerId)
@@ -307,8 +299,17 @@ function initiateTracking () {
       )
     }
 
-    Homey.manager('api').realtime('gpsLocation', trackers[trackerId])
+    // postpone stopmoving trigger
+    if (tracker[trackerId].moving) {
+      if (trackerTimeoutObjects[trackerId]) clearTimeout(trackerTimeoutObjects[trackerId])
+      trackerTimeoutObjects[trackerId] = setTimeout(
+        stopMoving,
+        trackers[trackerId].settings.stoppedMovingTimeout * 1000,
+        trackerId
+      )
+    }
 
+    Homey.manager('api').realtime('gpsLocation', trackers[trackerId])
   })
   tracking.startTracking(Object.keys(trackers))
 } // function initiateTracking
