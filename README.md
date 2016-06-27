@@ -1,10 +1,11 @@
 # GPS-Trace
 
-Track your car and phones with the free GPS-Trace.com service. You can find a list of all supported devices [here](http://gps-trace.com/en/hardware). Mobile phones are trackable with the GPS Tag Orange apps for [Android](https://play.google.com/store/apps/details?id=wialon.GPS_Tag_Orange) and [Apple](https://itunes.apple.com/app/gps-trace-orange-gps-tracking/id964462657).
+Track your car and phones with the free GPS-Trace.com service. You can find a list of all supported devices [here](http://gps-trace.com/en/hardware). Mobile phones are trackable with the GPS Tag Orange apps for [Android](https://play.google.com/store/apps/details?id=wialon.GPS_Tag_Orange) and [Apple](https://itunes.apple.com/app/gps-tag-orange/id766356081).
 The location of your Homey will be added as a default geofence. Additional geofences can be added.
 
 ### Speech triggers
- - Dude, where's my car > give's your car location (later)
+ - Dude, where is my car > give's your car location
+ (NL: Gast waar is mijn <tracker naam>)
 
 ### Trigger cards on device
  - Tracker moved
@@ -18,7 +19,7 @@ The location of your Homey will be added as a default geofence. Additional geofe
  - Tracker is in geofence
 
 ### Action cards
- - Say location of tracker
+ - Say location of tracker (output on Homey)
  - Update tracker (if polling is disabled) (later)
 
 ### Settings
@@ -47,6 +48,9 @@ The location of your Homey will be added as a default geofence. Additional geofe
 
 ---
 ### Changelog
+
+##### version 0.3.0
+- Added support for speech triggers
 
 ##### version 0.2.1
 - Bugfix on movement trigger while distance was within constraint
@@ -108,13 +112,12 @@ The location of your Homey will be added as a default geofence. Additional geofe
 
 ---
 ### TO DO (prioritized)
-- Support speech triggers
-- Bind devices to precense of users (can be done with standard flow for now)
+- Bind devices to presence of users (can be done with standard flow for now)
 - Normalize getAddress responses output in location library
-- Warning on account removal about ghost devices and broken flows
-- Get and save tracker hw-type and hw-category
 - Refactor 'updatetracker' in driver.js: centralize effectuation of changed location
 - Improve action card 'say location': trigger other trigger cards if polling was disabled
+- Warn on account removal about ghost devices and broken flows
+- Get and save tracker hw-type and hw-category
 - Select an icon on device addition
 - Units selections meters/miles (based on Homey.manager('i18n'))
 - Add driver for external API based trackers (push)

@@ -142,14 +142,16 @@ function stopMoving (trackerId) {
   route.end.time = trackers[trackerId].timeLastUpdate
   route.trackerId = trackerId
 
-  var allRoutes = Homey.manager('settings').get('gpsRoutes') || []
-  allRoutes.push(route)
-  Homey.manager('settings').set('gpsRoutes', allRoutes)
-
-  // TODO: Read setting and route object to collection for geofence analysis
+  // only save route if distance > 1000m
+  if ((trackers[trackerId].route.distance || 0) > 1000) {
+    // TODO: Read setting if route analysis is allowed
+    var allRoutes = Homey.manager('settings').get('gpsRoutes') || []
+    allRoutes.push(route)
+    Homey.manager('settings').set('gpsRoutes', allRoutes)
+  }
   // update tracker
-  trackers[trackerId].moving = false
   delete trackers[trackerId].route
+  trackers[trackerId].moving = false
   Homey.manager('api').realtime('gpsLocation', trackers[trackerId])
 
   // handle flows
@@ -168,6 +170,33 @@ function stopMoving (trackerId) {
       GpsDebugLog('flow trigger tracker_stopt_moving ', {id: trackerId, error: err, result: result})
     }
   )
+}
+
+function updateTracker (trackerId, callback) {
+  GpsDebugLog('######### GPS TRACKING ## updateTracker #########################')
+  var settings = Homey.manager('settings').get('gpsaccount')
+  if (!settings) return callback('no settings!')
+  if (!trackerId) return callback('no device!')
+
+  var singleTrack = new Location({
+    user: settings.user,
+    password: settings.password
+  })
+  singleTrack.getAddressForItem(trackerId, function (address) {
+    var place = address.cycleway || address.road || address.retail || address.footway || address.address29 || address.path || address.pedestrian
+    var city = address.city || address.town || address.village
+    if (place == null || city == null) { GpsDebugLog('no address translation found', address) }
+
+    trackers[trackerId].location = {
+      place: place,
+      city: city
+    }
+    callback(null, trackerId)
+  })
+  singleTrack.on('error', function (error) {
+    GpsDebugLog('event: error', error)
+    if (error) return callback(error)
+  })
 }
 
 function initiateTracking () {
@@ -318,21 +347,24 @@ var self = {
   init: function (devices_data, callback) {
     // initial load of trackers object
     devices_data.forEach(function (device_data) {
-      trackers[device_data.id] = {
-        trackerId: device_data.id,
-        name: device_data.id,
-        location: {},
-        geofences: []
-      }
-      trackerTimeoutObjects[device_data.id] = null
-      module.exports.getSettings(device_data, function (err, settings) {
-        if (err) GpsDebugLog('Error on loading device settings', {device_data: device_data, error: err})
-        var trackersettings = {
-          retriggerRestrictTime: settings.retriggerRestrictTime || 1,
-          retriggerRestrictDistance: settings.retriggerRestrictDistance || 1,
-          stoppedMovingTimeout: settings.stoppedMovingTimeout || 120
+      Homey.manager('drivers').getDriver('tracker').getName(device_data, function (err, name) {
+        if (err) return
+        trackers[device_data.id] = {
+          trackerId: device_data.id,
+          name: name,
+          location: {},
+          geofences: []
         }
-        trackers[device_data.id].settings = trackersettings
+        trackerTimeoutObjects[device_data.id] = null
+        module.exports.getSettings(device_data, function (err, settings) {
+          if (err) GpsDebugLog('Error on loading device settings', {device_data: device_data, error: err})
+          var trackersettings = {
+            retriggerRestrictTime: settings.retriggerRestrictTime || 1,
+            retriggerRestrictDistance: settings.retriggerRestrictDistance || 1,
+            stoppedMovingTimeout: settings.stoppedMovingTimeout || 120
+          }
+          trackers[device_data.id].settings = trackersettings
+        })
       })
     })
 
@@ -389,7 +421,9 @@ var self = {
       GpsDebugLog('Flow action say_address', args)
       var trackerId = args.device.id
 
-      function ready (result) {
+      function ready (err, trackerId) {
+        if (err) return callback(err)
+        var result = Util.createAddressSpeech(trackers[trackerId].location.place, trackers[trackerId].location.city, trackers[trackerId].name)
         GpsDebugLog('result for speech', result)
         Homey.manager('speech-output').say(result)
         callback(null, true)
@@ -397,26 +431,29 @@ var self = {
 
       // polling is disabled
       if (tracking == null) {
-        var settings = Homey.manager('settings').get('gpsaccount')
-        if (!settings) return callback('no settings!')
-        if (!trackerId) return callback('no device!')
-
-        var singleTrack = new Location({
-          user: settings.user,
-          password: settings.password
-        })
-        singleTrack.getAddressForItem(trackerId, function (address) {
-          var place = address.cycleway || address.road || address.retail || address.footway || address.address29 || address.path || address.pedestrian
-          var city = address.town || address.city
-          ready(Util.createAddressSpeech(place, city))
-          // TODO: do *all* the update and trigger magic here
-        })
-        singleTrack.on('error', function (error) {
-          GpsDebugLog('event: error', error)
-          if (error) return callback(error)
-        })
+        updateTracker(trackerId, ready)
       } else {
-        ready(Util.createAddressSpeech(trackers[trackerId].location.place, trackers[trackerId].location.city))
+        ready(null, trackerId)
+      }
+    })
+
+    Homey.manager('speech-input').on('speech', function (speech, callback) {
+      function ready (err, trackerId) {
+        if (err) return
+        speech.say(Util.createAddressSpeech(trackers[trackerId].location.place, trackers[trackerId].location.city, trackers[trackerId].name))
+      }
+
+      if (speech.devices) {
+        speech.devices.forEach(function (device) {
+          if (tracking == null) {
+            updateTracker(device.id, ready)
+          } else {
+            ready(null, device.id)
+          }
+        })
+        callback(null, true)
+      } else {
+        callback(true, null)
       }
     })
 

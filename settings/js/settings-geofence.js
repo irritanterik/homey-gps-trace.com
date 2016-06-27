@@ -8,6 +8,10 @@ var trackerMarkers = []
 var geofences = {}
 var geofenceOverlays = []
 var homeyMarkers = []
+var routes = []
+var startMarkers = []
+var endMarkers = []
+var routeMarkers = []
 var activeGeofenceId
 
 function initGeofences () {
@@ -16,6 +20,96 @@ function initGeofences () {
   loadGeofences()
   loadTrackers()
   subscribeTrackerUpdates()
+  checkRoutes()
+}
+
+function checkRoutes () {
+  Homey.get('gpsRoutes', function (error, result) {
+    if (error) return console.error(error)
+    if (!result) {
+      $('#showRouteStartPoints').prop('disabled', true)
+      $('#showRouteEndPoints').prop('disabled', true)
+      $('#showRoutes').prop('disabled', true)
+      showRouteStartPointsChange()
+      showRouteEndPointsChange()
+      showRoutesChange()
+      return console.warn('No routes to load!')
+    }
+    routes = result
+    $('#showRouteStartPoints').prop('disabled', false)
+    $('#showRouteEndPoints').prop('disabled', false)
+    $('#showRoutes').prop('disabled', false)
+    $.each(routes, function (index, route) {
+      console.log('routestart to display:', index, route.start)
+      var startLocation = new google.maps.LatLng(route.start.lat, route.start.lng)
+      var endLocation = new google.maps.LatLng(route.end.lat, route.end.lng)
+      var startInfowindow = new google.maps.InfoWindow({
+        content: '' + route.start.toString()
+      })
+      var endInfowindow = new google.maps.InfoWindow({
+        content: '' + route.end.toString()
+      })
+      var startMarker = new google.maps.Marker({
+        position: startLocation,
+        map: null,
+        draggable: false,
+        icon: {
+          path: 'M -5,0 0,-5 5,0 0,5 z',
+          strokeColor: '#F00',
+          fillColor: '#F00',
+          fillOpacity: 1
+        }
+      })
+      var routeMarker = new google.maps.Polyline({
+        path: [startLocation, endLocation],
+        icons: [{
+          icon: {path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW},
+          offset: '100%'
+        }]
+      })
+      routeMarker.time = route.start.time
+      var endMarker = new google.maps.Marker({
+        position: endLocation,
+        map: null,
+        draggable: false,
+        icon: {
+          path: 'M -2,-2 2,2 M 2,-2 -2,2',
+          strokeColor: '#292',
+          strokeWeight: 4
+        }
+      })
+      endMarker.time = route.start.time
+      google.maps.event.addListener(startMarker, 'click', function () {
+        startInfowindow.open(map, startMarker)
+      })
+      google.maps.event.addListener(endMarker, 'click', function () {
+        endInfowindow.open(map, endMarker)
+      })
+      startMarkers.push(startMarker)
+      endMarkers.push(endMarker)
+      routeMarkers.push(routeMarker)
+    })
+  })
+}
+
+function showRouteStartPointsChange () {
+  startMarkers.forEach(function (marker) {
+    marker.setMap(($('#showRouteStartPoints').prop('checked') ? map : null))
+  })
+  // centerMap(startMarkers.concat(homeyMarkers))
+}
+
+function showRouteEndPointsChange () {
+  endMarkers.forEach(function (marker) {
+    marker.setMap(($('#showRouteEndPoints').prop('checked') ? map : null))
+  })
+  // centerMap(endMarkers.concat(homeyMarkers))
+}
+
+function showRoutesChange () {
+  routeMarkers.forEach(function (marker) {
+    marker.setMap(($('#showRoutes').prop('checked') ? map : null))
+  })
 }
 
 function createMap () {

@@ -1,6 +1,6 @@
 {
   "id": "com.gps-trace",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "compatibility": "*",
   "name": {
     "en": "GPS-Trace",
@@ -103,6 +103,51 @@
           "template":"add_devices"
         }
       ]
+    }
+  ],
+  "speech": [
+    {
+      "id": "gps",
+      "importance": 1,
+      "triggers": {
+        "en": ["gps"],
+        "nl": ["gps"]
+      }
+    },{
+      "id": "dude",
+      "importance": 0.3,
+      "triggers": {
+        "en": ["dude"],
+        "nl": ["gast"]
+      }
+    },{
+      "id": "where_is",
+      "importance": 0.4,
+      "triggers": {
+        "en": ["where is"],
+        "nl": ["waar is"]
+      }
+    },{
+      "id": "address",
+      "importance": 0.4,
+      "triggers": {
+        "en": ["address", "location", "position"],
+        "nl": ["adres", "locatie", "positie"]
+      }
+    }
+  ],
+  "speechExamples":[
+    {
+      "en": "Dude, where is my car",
+      "nl": "Gast, waar is mijn auto"
+    },
+    {
+      "en": "Where is <tracker name>",
+      "nl": "Waar is <tracker naam>"
+    },
+    {
+      "en": "GPS address <tracker name>",
+      "nl": "GPS adres <tracker naam>"
     }
   ],
   "flow": {

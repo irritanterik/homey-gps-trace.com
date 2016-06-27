@@ -1,7 +1,9 @@
 { "defaultGeofenceName": "Home",
 	"speech": {
+    "theLocationOfTracker": "The location of tracker ",
+    "is": " is ",
 		"placeCityConjunction": ", ",
-		"positionUnknown": "The location is unknown."
+		"positionUnknown": "Unknown"
 	},
 	"settings": {
     "OSMlanguage": "en",

@@ -1,7 +1,9 @@
 { "defaultGeofenceName": "Thuis",
 	"speech": {
+    "theLocationOfTracker": "De locatie van ",
+    "is": " is ",
 		"placeCityConjunction": " in ",
-		"positionUnknown": "De locatie is onbekend."
+		"positionUnknown": "Onbekend"
 	},
 	"settings": {
     "OSMlanguage": "nl",
