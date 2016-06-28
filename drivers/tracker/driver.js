@@ -417,7 +417,7 @@ var self = {
         callback(null, false)
       }
     })
-    Homey.manager('flow').on('action.say_address', function (callback, args) {
+    Homey.manager('flow').on('action.say_address', function (callback, args, state) {
       GpsDebugLog('Flow action say_address', args)
       var trackerId = args.device.id
 
@@ -425,7 +425,12 @@ var self = {
         if (err) return callback(err)
         var result = Util.createAddressSpeech(trackers[trackerId].location.place, trackers[trackerId].location.city, trackers[trackerId].name)
         GpsDebugLog('result for speech', result)
-        Homey.manager('speech-output').say(result)
+        if (state) {
+          Homey.manager('speech-output').say(result, {session: state.session})
+        } else {
+          Homey.manager('speech-output').say(result)
+        }
+
         callback(null, true)
       }
 

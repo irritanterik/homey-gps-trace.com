@@ -19,7 +19,7 @@ The location of your Homey will be added as a default geofence. Additional geofe
  - Tracker is in geofence
 
 ### Action cards
- - Say location of tracker (output on Homey)
+ - Say location of tracker
  - Update tracker (if polling is disabled) (later)
 
 ### Settings
