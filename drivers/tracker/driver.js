@@ -425,12 +425,7 @@ var self = {
         if (err) return callback(err)
         var result = Util.createAddressSpeech(trackers[trackerId].location.place, trackers[trackerId].location.city, trackers[trackerId].name)
         GpsDebugLog('result for speech', result)
-        if (state) {
-          Homey.manager('speech-output').say(result, {session: state.session})
-        } else {
-          Homey.manager('speech-output').say(result)
-        }
-
+        Homey.manager('speech-output').say(result, {session: state.session})
         callback(null, true)
       }
 
