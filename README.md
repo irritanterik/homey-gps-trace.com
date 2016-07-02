@@ -49,7 +49,7 @@ The location of your Homey will be added as a default geofence. Additional geofe
 ---
 ### Changelog
 
-##### version 0.3.0
+##### version 0.3.1
 - Added support for speech triggers
 
 ##### version 0.2.1
@@ -130,4 +130,4 @@ The location of your Homey will be added as a default geofence. Additional geofe
 - Automatic create geofences based on start and endpoint collections
 
 ### Donate
-Help me getting a Tesla Model S/3/X with a small [donation](PayPal.Me/ErikvanDongen). After delivery of the vehicle i will release a Homey app for Tesla a.s.a.p. ;).
+Help me getting a Tesla Model S/3/X with a small [donation](http://PayPal.Me/ErikvanDongen). After delivery of the vehicle i will release a Homey app for Tesla a.s.a.p. ;).
