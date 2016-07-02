@@ -128,3 +128,6 @@ The location of your Homey will be added as a default geofence. Additional geofe
 - Show trips start and end points on map in Settings
 - Show trips routes on map in Settings
 - Automatic create geofences based on start and endpoint collections
+
+### Donate
+Help me getting a Tesla Model S/3/X with a small [donation](PayPal.Me/ErikvanDongen). After delivery of the vehicle i will release a Homey app for Tesla a.s.a.p. ;).
