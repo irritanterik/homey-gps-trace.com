@@ -25,6 +25,7 @@ The location of your Homey will be added as a default geofence. Additional geofe
 ### Settings
  - General settings
     - Account details
+      - Enable speech triggers / responses
       - Enable polling
       - Enable debug logging
     - Geofences
@@ -48,6 +49,9 @@ The location of your Homey will be added as a default geofence. Additional geofe
 
 ---
 ### Changelog
+
+##### version 0.3.2
+- Added setting for enabling speech triggers
 
 ##### version 0.3.1
 - Added support for speech triggers

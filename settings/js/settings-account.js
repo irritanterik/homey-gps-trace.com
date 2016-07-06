@@ -10,6 +10,7 @@ function initAccount () {
     if (currentGpsAccount != null) {
       $('#gpsUsername').val(currentGpsAccount['user'])
       $('#gpsPassword').val(currentGpsAccount['password'])
+      $('#gpsSpeech').prop('checked', currentGpsAccount['speech'])
       $('#gpsPolling').prop('checked', currentGpsAccount['polling'])
       $('#gpsDebug').prop('checked', currentGpsAccount['debug'])
     }
@@ -25,6 +26,7 @@ function clearGpsAccount () {
         if (error) return console.error(error)
         $('#gpsUsername').val('')
         $('#gpsPassword').val('')
+        $('#gpsSpeech').prop('checked', true)
         $('#gpsPolling').prop('checked', true)
         $('#gpsDebug').prop('checked', false)
         showSuccess(__('settings.account.messages.successClearing'), 3000)
@@ -37,6 +39,7 @@ function saveGpsAccount () {
   var currentGpsAccount = {
     user: $('#gpsUsername').val(),
     password: $('#gpsPassword').val(),
+    speech: $('#gpsSpeech').prop('checked'),
     polling: $('#gpsPolling').prop('checked'),
     debug: $('#gpsDebug').prop('checked')
   }

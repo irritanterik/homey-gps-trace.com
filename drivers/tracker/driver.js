@@ -438,6 +438,9 @@ var self = {
     })
 
     Homey.manager('speech-input').on('speech', function (speech, callback) {
+      var settings = Homey.manager('settings').get('gpsaccount')
+      if (!settings.speech) { return callback(true, null) }
+
       function ready (err, trackerId) {
         if (err) return
         speech.say(Util.createAddressSpeech(trackers[trackerId].location.place, trackers[trackerId].location.city, trackers[trackerId].name))

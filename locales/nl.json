@@ -14,6 +14,7 @@
 			"title": "GPS-Trace account",
 			"fieldUsername": "Gebruikersnaam",
 			"fieldPassword": "Wachtwoord",
+      "fieldSpeech": "Inschakelen spraak triggers",
 			"fieldPolling": "Inschakelen polling",
 			"fieldDebug": "Inschakelen debug log",
 			"buttonSave": "Opslaan",
