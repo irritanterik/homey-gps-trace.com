@@ -56,6 +56,11 @@ The location of your Homey will be added as a default geofence. Additional geofe
 ##### version 0.3.1
 - Added support for speech triggers
 
+##### version 0.3.0
+- Save trips
+- Show trips start and end points on map in Settings
+- Show trips routes on map in Settings
+
 ##### version 0.2.1
 - Bugfix on movement trigger while distance was within constraint
 - Bugfix on not triggering a tracker start moving   
@@ -128,9 +133,6 @@ The location of your Homey will be added as a default geofence. Additional geofe
 - Extend API
 - PUT new positions for a tracker
 - Add mobile card with mini-map with position (not yet supported by API)
-- Save trips
-- Show trips start and end points on map in Settings
-- Show trips routes on map in Settings
 - Automatic create geofences based on start and endpoint collections
 
 ### Donate
