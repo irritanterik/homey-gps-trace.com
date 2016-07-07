@@ -3,9 +3,9 @@
 Track your car and phones with the free GPS-Trace.com service. You can find a list of all supported devices [here](http://gps-trace.com/en/hardware). Mobile phones are trackable with the GPS Tag Orange apps for [Android](https://play.google.com/store/apps/details?id=wialon.GPS_Tag_Orange) and [Apple](https://itunes.apple.com/app/gps-tag-orange/id766356081).
 The location of your Homey will be added as a default geofence. Additional geofences can be added.
 
-### Speech triggers
- - Dude, where is my car > give's your car location
- (NL: Gast waar is mijn <tracker naam>)
+### Speech triggers, will answer with location:
+ - Dude, where is my <car name> (NL: Gast waar is mijn <tracker naam>)
+ - GPS <tracker name>
 
 ### Trigger cards on device
  - Tracker moved
