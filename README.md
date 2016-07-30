@@ -49,6 +49,12 @@ The location of your Homey will be added as a default geofence. Additional geofe
 
 ---
 ### Changelog
+##### version 0.4.0
+- Fixed compatibility with Homey firmware 0.9.1 after broken API's.
+- Normalize getAddress responses output in location library
+
+##### version 0.3.3
+- Fixed bug where app crashes if geofences not exists in flow editor  
 
 ##### version 0.3.2
 - Added setting for enabling speech triggers
@@ -121,8 +127,7 @@ The location of your Homey will be added as a default geofence. Additional geofe
 
 ---
 ### TO DO (prioritized)
-- Bind devices to presence of users (can be done with standard flow for now)
-- Normalize getAddress responses output in location library
+- Add mobile card with mini-map with position
 - Refactor 'updatetracker' in driver.js: centralize effectuation of changed location
 - Improve action card 'say location': trigger other trigger cards if polling was disabled
 - Warn on account removal about ghost devices and broken flows
@@ -132,7 +137,6 @@ The location of your Homey will be added as a default geofence. Additional geofe
 - Add driver for external API based trackers (push)
 - Extend API
 - PUT new positions for a tracker
-- Add mobile card with mini-map with position (not yet supported by API)
 - Automatic create geofences based on start and endpoint collections
 
 ### Donate

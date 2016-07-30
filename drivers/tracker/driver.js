@@ -183,14 +183,7 @@ function updateTracker (trackerId, callback) {
     password: settings.password
   })
   singleTrack.getAddressForItem(trackerId, function (address) {
-    var place = address.cycleway || address.road || address.retail || address.footway || address.address29 || address.path || address.pedestrian
-    var city = address.city || address.town || address.village
-    if (place == null || city == null) { GpsDebugLog('no address translation found', address) }
-
-    trackers[trackerId].location = {
-      place: place,
-      city: city
-    }
+    trackers[trackerId].location = address
     callback(null, trackerId)
   })
   singleTrack.on('error', function (error) {
@@ -251,10 +244,9 @@ function initiateTracking () {
   })
   tracking.on('location', function (trackerId, data) {
     var previousLocation = trackers[trackerId].location
-    var place = data.address.cycleway || data.address.road || data.address.retail || data.address.footway || data.address.address29 || data.address.path || data.address.pedestrian
-    var city = data.address.city || data.address.town || data.address.village
+    var place = data.address.place
+    var city = data.address.city
     var wasMoving = trackers[trackerId].moving
-    if (place == null || city == null) { GpsDebugLog('no address translation found', data.address) }
 
     trackers[trackerId].location = {
       place: place,
@@ -370,6 +362,7 @@ var self = {
 
     function geofencesFilteredList (value) {
       var result = []
+      if (!geofences) return result
       Object.keys(geofences).forEach(function (geofenceId) {
         if (geofences[geofenceId].name.toUpperCase().indexOf(value.toUpperCase()) > -1) {
           result.push({name: geofences[geofenceId].name, geofenceId: geofenceId})
@@ -507,36 +500,7 @@ var self = {
           devices.push({
             name: item.nm,
             data: {id: item.id.toString()},
-            icon: 'icon.svg',
-            capabilities: [{
-              'id': 'location',
-              'type': 'object',
-              'title': {
-                'en': 'Location',
-                'nl': 'Positie'
-              },
-              'units': {
-                'en': 'Lat Lng'
-              },
-              'desc': {
-                'en': 'Location of tracker'
-              },
-              'getable': true,
-              'setable': false
-            }, {
-              'id': 'moving',
-              'type': 'boolean',
-              'title': {
-                'en': 'Moving',
-                'nl': 'Onderweg'
-              },
-              'desc': {
-                'en': 'Is tracker moving',
-                'nl': 'Is tracker onderweg'
-              },
-              'getable': true,
-              'setable': false
-            }]
+            icon: 'icon.svg'
           }  // TODO: Let user choose icon
           )
         })
@@ -585,7 +549,7 @@ var self = {
           lng: trackers[device_data.id].location.lng,
           lat: trackers[device_data.id].location.lat
         }
-        callback(null, location)
+        callback(null, JSON.stringify(location))
       }
     },
     moving: {

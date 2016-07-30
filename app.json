@@ -1,7 +1,7 @@
 {
   "id": "com.gps-trace",
-  "version": "0.3.2",
-  "compatibility": "*",
+  "version": "0.4.0",
+  "compatibility": ">=0.9.1",
   "name": {
     "en": "GPS-Trace",
     "nl": "GPS-Trace"
@@ -24,6 +24,36 @@
      "large":"./assets/images/large.jpg",
      "small":"./assets/images/small.jpg"
   },
+  "capabilities":{
+    "location": {
+      "type": "string",
+      "title": {
+        "en": "Location",
+        "nl": "Positie"
+      },
+      "units": {
+        "en": "Lat Lng"
+      },
+      "desc": {
+        "en": "Location of tracker"
+      },
+      "getable": true,
+      "setable": false
+    },
+    "moving": {
+      "type": "boolean",
+      "title": {
+        "en": "Moving",
+        "nl": "Onderweg"
+      },
+      "desc": {
+        "en": "Is tracker moving",
+        "nl": "Is tracker onderweg"
+      },
+      "getable": true,
+      "setable": false
+    }
+  },
   "drivers":[
     {
       "id":"tracker",
@@ -36,7 +66,7 @@
         "small":"drivers/tracker/assets/images/small.jpg"
       },
       "class":"other",
-      "capabilities":["location, moving"],
+      "capabilities":["location", "moving"],
       "settings":[
         {
           "type":"group",
