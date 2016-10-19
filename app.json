@@ -1,7 +1,7 @@
 {
   "id": "com.gps-trace",
-  "version": "0.4.0",
-  "compatibility": ">=0.9.1",
+  "version": "0.4.1",
+  "compatibility": ">=0.10.5",
   "name": {
     "en": "GPS-Trace",
     "nl": "GPS-Trace"
@@ -138,7 +138,7 @@
   "speech": [
     {
       "id": "gps",
-      "importance": 1,
+      "importance": 0.9,
       "triggers": {
         "en": ["gps"],
         "nl": ["gps"]
@@ -154,8 +154,8 @@
       "id": "where_is",
       "importance": 0.4,
       "triggers": {
-        "en": ["where is"],
-        "nl": ["waar is"]
+        "en": ["where is", "what is"],
+        "nl": ["waar is", "wat is"]
       }
     },{
       "id": "address",

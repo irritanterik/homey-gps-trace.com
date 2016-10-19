@@ -49,6 +49,9 @@ The location of your Homey will be added as a default geofence. Additional geofe
 
 ---
 ### Changelog
+##### version 0.4.1
+- Fixed compatibility with Homey firmware 0.10.x after broken API's.
+
 ##### version 0.4.0
 - Fixed compatibility with Homey firmware 0.9.1 after broken API's.
 - Normalize getAddress responses output in location library

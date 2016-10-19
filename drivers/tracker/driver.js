@@ -431,20 +431,23 @@ var self = {
     })
 
     Homey.manager('speech-input').on('speech', function (speech, callback) {
+      GpsDebugLog('evaluate speech', speech)
       var settings = Homey.manager('settings').get('gpsaccount')
       if (!settings.speech) { return callback(true, null) }
 
       function ready (err, trackerId) {
+        GpsDebugLog('create speech', {err: err, trackerId: trackerId})
         if (err) return
+        if (!trackers[trackerId].location) return GpsDebugLog('no location found for tracker on speech handler')
         speech.say(Util.createAddressSpeech(trackers[trackerId].location.place, trackers[trackerId].location.city, trackers[trackerId].name))
       }
 
       if (speech.devices) {
         speech.devices.forEach(function (device) {
           if (tracking == null) {
-            updateTracker(device.id, ready)
+            updateTracker(device.data.id, ready)
           } else {
-            ready(null, device.id)
+            ready(null, device.data.id)
           }
         })
         callback(null, true)
