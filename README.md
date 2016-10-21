@@ -49,6 +49,9 @@ The location of your Homey will be added as a default geofence. Additional geofe
 
 ---
 ### Changelog
+##### version 0.4.2
+- Fixed a bug where location was not known immediately after app start
+
 ##### version 0.4.1
 - Fixed compatibility with Homey firmware 0.10.x after broken API's.
 

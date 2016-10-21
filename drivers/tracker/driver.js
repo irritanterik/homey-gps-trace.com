@@ -466,9 +466,10 @@ var self = {
       }
     })
 
-    // delay initiation becouse getting settings per defice take time
+    // delay initiation becouse settings and name device take time
     setTimeout(initiateTracking, 5000)
-    callback()
+    // delay on callback to prevent nullpointers on capability gets
+    setTimeout(callback, 10000)
   },
   renamed: function (device, name, callback) {
     GpsDebugLog('rename tracker', [device, name])
@@ -548,9 +549,10 @@ var self = {
     location: {
       get: function (device_data, callback) {
         GpsDebugLog('capabilities > location > get', device_data)
+        if (!trackers[device_data.id] || !trackers[device_data.id].location) return callback('not_ready')
         var location = {
-          lng: trackers[device_data.id].location.lng,
-          lat: trackers[device_data.id].location.lat
+          lng: trackers[device_data.id].location.lng || null,
+          lat: trackers[device_data.id].location.lat || null
         }
         callback(null, JSON.stringify(location))
       }
@@ -558,7 +560,8 @@ var self = {
     moving: {
       get: function (device_data, callback) {
         GpsDebugLog('capabilities > moving > get', device_data)
-        callback(null, trackers[device_data.id].moving)
+        if (!trackers[device_data.id]) return callback('not_ready')
+        callback(null, trackers[device_data.id].moving || false)
       }
     }
   },
