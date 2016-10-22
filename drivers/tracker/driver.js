@@ -433,7 +433,7 @@ var self = {
     Homey.manager('speech-input').on('speech', function (speech, callback) {
       GpsDebugLog('evaluate speech', speech)
       var settings = Homey.manager('settings').get('gpsaccount')
-      if (!settings.speech) { return callback(true, null) }
+      if (!settings || !settings.speech) { return callback(true, null) }
 
       function ready (err, trackerId) {
         GpsDebugLog('create speech', {err: err, trackerId: trackerId})
