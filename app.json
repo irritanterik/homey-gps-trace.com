@@ -1,6 +1,6 @@
 {
   "id": "com.gps-trace",
-  "version": "0.4.2",
+  "version": "1.0.0",
   "compatibility": ">=0.10.5",
   "name": {
     "en": "GPS-Trace",
