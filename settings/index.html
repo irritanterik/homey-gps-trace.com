@@ -69,14 +69,16 @@
     </div>
     <!-- Debug settings panel -->
     <div id="panel-3" class="panel">
-      <fieldset>
-        <table id="logs" width=100%>
-          <tr>
-            <th class="datetime" data-i18n="settings.debug.thDateTime"></th>
-            <th class="entry" data-i18n="settings.debug.thMessage"></th>
-          </tr>
-        </table>
-        <button id="clearGpsLog" class="right" onclick="clearGpsLog()"><i class="fa fa-trash-o"></i> <span data-i18n="settings.debug.buttonClear">Clear</span></button>
+      <fieldset class="map">
+        <button id="clearGpsLog" onclick="clearGpsLog()"><i class="fa fa-trash-o"></i> <span data-i18n="settings.debug.buttonClear">Clear</span></button>
+        <div id="log-canvas">
+          <table id="logs" width=100%>
+            <tr>
+              <th class="datetime" data-i18n="settings.debug.thDateTime"></th>
+              <th class="entry" data-i18n="settings.debug.thMessage"></th>
+            </tr>
+          </table>
+        </div>
       </fieldset>
     </div>
   </body>

@@ -3,135 +3,50 @@
 
 var Location = require('../../lib/location.js')
 var Util = require('../../lib/util.js')
-var Inside = require('point-in-polygon')
+var Geo = require('../../lib/geofences.js')
+
 var retryTrackingTimeoutId = null
 var tracking = null
-var trackers = {}
 var trackerTimeoutObjects = {}
 var geofences = {}
-var debugSetting = true
-var debugLog = []
-// var exampleTrackerObject['x123'] = {
-//   trackerId: 'x123',
-//   name: 'Tesla S'
-//   location: {
-//     place: 'Dam',
-//     city: 'Amsterdam',
-//     lat: 4.8904221,
-//     lng: 52.3731141
-//   }
-//   geofences [1460492122638, 1460492122639],
-//   timeLastUpdate: 1460492122638,
-//   timeLastTrigger: 1460492122638,
-//   moving: true,
-//   route: {
-//     distance: 13,
-//     start: {
-//       time: 1460492122638,
-//       place: 'Dam',
-//       city: 'Amsterdam',
-//       lng: 52.3731141,
-//       lat: 4.8904221
-//     },
-//     end: {
-//       place: 'Plein',
-//       city: 'Den Haag',
-//       lng: 52.3731141,
-//       lat: 4.8904221
-//     }
-//   },
-//   settings: {
-//     retriggerRestrictDistance: 5,
-//     retriggerRestrictTime: 5,
-//     stoppedMovingTimeout: 240
-//   }
-// }
-
-function GpsDebugLog (message, data) {
-  if (!debugSetting) return
-  if (!debugLog) debugLog = []
-  if (!data) data = null
-
-  // Push new event, remove items over 100 and save new array
-  Homey.manager('api').realtime('gpsLog', {datetime: new Date(), message: message, data: data})
-  debugLog.push({datetime: new Date(), message: message, data: data})
-  if (debugLog.length > 100) debugLog.splice(0, 1)
-  if (data == null) {
-    Homey.log(Util.epochToTimeFormatter(), message)
-  } else {
-    Homey.log(Util.epochToTimeFormatter(), message, data)
-  }
-  Homey.manager('settings').set('gpsLog', debugLog)
-} // function GpsDebugLog
+var trackers = {}
 
 function checkGeofences (notrigger) {
   if (!trackers) return
-  Object.keys(trackers).forEach(function (trackerId) {
+  Object.keys(trackers).forEach((trackerId) => {
     checkGeofencesForTracker(trackerId, notrigger)
   })
 }
 
 function checkGeofencesForTracker (trackerId, notrigger) {
   if (!geofences) return
-  Object.keys(geofences).forEach(function (geofenceId) {
-    var trackerInGeofence = false
-    var trackerWasInGeofence = trackers[trackerId].geofences.indexOf(geofenceId) !== -1
-    if (geofences[geofenceId].type === 'CIRCLE') {
-      var distance = Util.calculateDistance(
-        trackers[trackerId].location.lat,
-        trackers[trackerId].location.lng,
-        geofences[geofenceId].circle.center.lat,
-        geofences[geofenceId].circle.center.lng,
-        'M'
-      )
-      trackerInGeofence = distance < geofences[geofenceId].circle.radius
-    } else {
-      var trackerPositionShort = [trackers[trackerId].location.lat, trackers[trackerId].location.lng]
-      var geofencePathShort = []
-      if (geofences[geofenceId].type === 'POLYGON') {
-        geofences[geofenceId].polygon.path.forEach(function (point) {
-          geofencePathShort.push([point.lat, point.lng])
-        })
-      } else {
-        geofences[geofenceId].rectangle.path.forEach(function (point) {
-          geofencePathShort.push([point.lat, point.lng])
-        })
+  var trackerGeofencesPrevious = trackers[trackerId].geofences || []
+  var trackerInGeofence = Geo.geofencesLocationMatch(trackers[trackerId].location)
+  trackers[trackerId].geofences = trackerInGeofence
+  if (notrigger) return
+
+  trackerInGeofence.filter(active => trackerGeofencesPrevious.indexOf(active)).forEach(geofenceId => {
+    Homey.manager('flow').triggerDevice('tracker_geofence_entered', null,
+      {geofence: geofenceId},
+      {id: trackerId},
+      function (error, result) {
+        Util.debugLog('flow trigger tracker entered geofence', {id: trackerId, geofenceId: geofenceId, error: error, result: result})
       }
-      trackerInGeofence = Inside(trackerPositionShort, geofencePathShort)
-    }
-    if ((trackerInGeofence) && (!trackerWasInGeofence)) {
-      trackers[trackerId].geofences.push(geofenceId)
-      if (!notrigger) {
-        Homey.manager('flow').triggerDevice(
-          'tracker_geofence_entered',
-          null, // notokens
-          {geofence: geofenceId},
-          {id: trackerId},
-          function (err, result) {
-            GpsDebugLog('flow trigger tracker_geofence_entered ', {id: trackerId, geofenceId: geofenceId, error: err, result: result})
-          }
-        )
+    )
+  })
+  trackerGeofencesPrevious.filter(previous => trackerInGeofence.indexOf(previous)).forEach(geofenceId => {
+    Homey.manager('flow').triggerDevice('tracker_geofence_left', null,
+      {geofence: geofenceId},
+      {id: trackerId},
+      function (error, result) {
+        Util.debugLog('flow trigger tracker left geofence', {id: trackerId, geofenceId: geofenceId, error: error, result: result})
       }
-    }
-    if ((!trackerInGeofence) && (trackerWasInGeofence)) {
-      trackers[trackerId].geofences.splice(trackers[trackerId].geofences.indexOf(geofenceId), 1)
-      if (!notrigger) {
-        Homey.manager('flow').triggerDevice(
-          'tracker_geofence_left',
-          null, // notokens
-          {geofence: geofenceId},
-          {id: trackerId},
-          function (err, result) {
-            GpsDebugLog('flow trigger tracker_geofence_left ', {id: trackerId, geofenceId: geofenceId, error: err, result: result})
-          }
-        )
-      }
-    }
+    )
   })
 }
 
 function stopMoving (trackerId) {
-  GpsDebugLog('stopMoving called', {trackerId: trackerId, moving: trackers[trackerId].moving})
+  Util.debugLog('stopMoving called', {trackerId: trackerId, moving: trackers[trackerId].moving})
   trackerTimeoutObjects[trackerId] = null
   if (!trackers[trackerId].moving) return
   if (!trackers[trackerId].route) return
@@ -152,6 +67,7 @@ function stopMoving (trackerId) {
   // update tracker
   delete trackers[trackerId].route
   trackers[trackerId].moving = false
+  module.exports.realtime({id: trackerId}, 'moving', false)
   Homey.manager('api').realtime('gpsLocation', trackers[trackerId])
 
   // handle flows
@@ -166,48 +82,52 @@ function stopMoving (trackerId) {
     tracker_tokens,
     null,
     {id: trackerId},
-    function (err, result) {
-      GpsDebugLog('flow trigger tracker_stopt_moving ', {id: trackerId, error: err, result: result})
+    function (error, result) {
+      Util.debugLog('flow trigger tracker_stopt_moving ', {id: trackerId, error: error, result: result})
     }
   )
 }
 
-function updateTracker (trackerId, callback) {
-  GpsDebugLog('######### GPS TRACKING ## updateTracker #########################')
-  var settings = Homey.manager('settings').get('gpsaccount')
-  if (!settings) return callback('no settings!')
-  if (!trackerId) return callback('no device!')
-
-  var singleTrack = new Location({
-    user: settings.user,
-    password: settings.password
-  })
-  singleTrack.getAddressForItem(trackerId, function (address) {
-    trackers[trackerId].location = address
-    callback(null, trackerId)
-  })
-  singleTrack.on('error', function (error) {
-    GpsDebugLog('event: error', error)
-    if (error) return callback(error)
-  })
-}
+// function updateTracker (trackerId, callback) {
+//   Util.debugLog('######### GPS TRACKING ## updateTracker #########################')
+//   var settings = Homey.manager('settings').get('gpsaccount')
+//   if (!settings) return callback('no settings!')
+//   if (!trackerId) return callback('no device!')
+//
+//   var singleTrack = new Location({
+//     user: settings.user,
+//     password: settings.password
+//   })
+//   singleTrack.getAddressForItem(trackerId, function (address) {
+//     trackers[trackerId].location = address
+//     callback(null, trackerId)
+//   })
+//   singleTrack.on('error', function (error) {
+//     Util.debugLog('event: error', error)
+//     if (error) return callback(error)
+//   })
+// }
 
 function initiateTracking () {
   if (retryTrackingTimeoutId) clearTimeout(retryTrackingTimeoutId)
-  debugLog = Homey.manager('settings').get('gpsLog')
-  debugSetting = true
   retryTrackingTimeoutId = null
 
-  GpsDebugLog('######### GPS TRACKING ## initiateTracking #########################')
+  Util.debugLog('######### GPS TRACKING ## initiateTracking #########################', {Homey: Homey.version, App: Homey.manifest.version})
   if (tracking) tracking.stopTracking()
   tracking = null
 
   geofences = Homey.manager('settings').get('geofences')
   var settings = Homey.manager('settings').get('gpsaccount')
-  if (!settings) return GpsDebugLog('  no settings!')
-  if (!settings.debug) debugSetting = false
-  if (!Object.keys(trackers).length) return GpsDebugLog('  no devices to track!')
-  if (!settings.polling) return GpsDebugLog('  polling disabled in settings')
+  if (!settings) return Util.debugLog('  no settings!')
+
+  tracking = new Location({
+    user: settings.user,
+    password: settings.password,
+    intervalMS: 10000 // TODO: read from app setting
+  })
+
+  if (!Object.keys(trackers).length) return Util.debugLog('  no devices to track!')
+  tracking.on('error', error => { Util.debugLog('event: error', error) })
 
   Object.keys(trackers).forEach(function (trackerId) {
     trackers[trackerId].timeLastTrigger = 0
@@ -222,17 +142,9 @@ function initiateTracking () {
     }
   })
 
-  tracking = new Location({
-    user: settings.user,
-    password: settings.password,
-    intervalMS: 10000 // TODO: read from app setting
-  })
-  tracking.on('error', function (error) {
-    GpsDebugLog('event: error', error)
-  })
   tracking.on('tracking_terminated', function (reason) {
     if (tracking) {
-      GpsDebugLog('event: tracking_terminated, will retry in 10 minutes.', reason)
+      Util.debugLog('event: tracking_terminated, will retry in 10 minutes.', reason)
       tracking = null
       if (!retryTrackingTimeoutId) {
         retryTrackingTimeoutId = setTimeout(initiateTracking, 10 * 60 * 1000)
@@ -240,7 +152,7 @@ function initiateTracking () {
     }
   })
   tracking.on('message', function (trackerId, data) {
-    GpsDebugLog('event: message', {id: trackerId, distance: data.distance})
+    Util.debugLog('event: message', {id: trackerId, distance: data.distance})
   })
   tracking.on('location', function (trackerId, data) {
     var previousLocation = trackers[trackerId].location
@@ -263,17 +175,17 @@ function initiateTracking () {
     if (wasMoving == null) {
       trackers[trackerId].moving = false
       checkGeofencesForTracker(trackerId, true)
-      GpsDebugLog('initial location for tracker', {id: trackerId, place: place, city: city})
+      Util.debugLog('initial location for tracker', {id: trackerId, place: place, city: city})
       return
     }
 
     // handle flows
-    GpsDebugLog('event: location', {id: trackerId, place: place, city: city, distance: data.distance, wasMoving: wasMoving, timeConstraint: timeConstraint, distanceConstraint: distanceConstraint})
+    Util.debugLog('event: location', {id: trackerId, place: place, city: city, distance: data.distance, wasMoving: wasMoving, timeConstraint: timeConstraint, distanceConstraint: distanceConstraint})
     checkGeofencesForTracker(trackerId)
     if (wasMoving) {
       // next if part is temp fix. Should be removed when bug final fixed
       if (!trackers[trackerId].route) {
-        GpsDebugLog('tracker was moving, but without route object', {id: trackerId, tracker: trackers[trackerId]})
+        Util.debugLog('tracker was moving, but without route object', {id: trackerId, tracker: trackers[trackerId]})
         trackers[trackerId].route = {
           distance: data.distance,
           start: previousLocation
@@ -290,6 +202,7 @@ function initiateTracking () {
         start: previousLocation
       }
       trackers[trackerId].route.start.time = data.t * 1000
+      module.exports.realtime({id: trackerId}, 'moving', true)
       Homey.manager('flow').triggerDevice(
         'tracker_start_moving',
         {
@@ -299,23 +212,26 @@ function initiateTracking () {
         null,
         {id: trackerId},
         function (err, result) {
-          GpsDebugLog('flow trigger tracker_start_moving ', {id: trackerId, error: err, result: result})
+          Util.debugLog('flow trigger tracker_start_moving ', {id: trackerId, error: err, result: result})
         }
       )
     }
 
     if (!timeConstraint && !distanceConstraint) {
       trackers[trackerId].timeLastTrigger = data.t * 1000
+      module.exports.realtime({id: trackerId}, 'location', JSON.stringify(trackers[trackerId].location))
+      module.exports.realtime({id: trackerId}, 'address', place + ', ' + city)
+
       Homey.manager('flow').triggerDevice(
         'tracker_moved',
         {
           address: Util.createAddressSpeech(place, city),
-          distance: Math.ceil(data.distance) || 0
+          distance: (Math.ceil(data.distance) || 0)
         },
         null,
         {id: trackerId},
         function (err, result) {
-          GpsDebugLog('flow trigger tracker_moved ', {id: trackerId, error: err, result: result})
+          Util.debugLog('flow trigger tracker_moved ', {id: trackerId, error: err, result: result})
         }
       )
     }
@@ -332,6 +248,8 @@ function initiateTracking () {
 
     Homey.manager('api').realtime('gpsLocation', trackers[trackerId])
   })
+
+  if (!settings.polling) return Util.debugLog('  polling disabled in settings')
   tracking.startTracking(Object.keys(trackers))
 } // function initiateTracking
 
@@ -349,9 +267,9 @@ var self = {
         }
         trackerTimeoutObjects[device_data.id] = null
         module.exports.getSettings(device_data, function (err, settings) {
-          if (err) GpsDebugLog('Error on loading device settings', {device_data: device_data, error: err})
+          if (err) Util.debugLog('Error on loading device settings', {device_data: device_data, error: err})
           var trackersettings = {
-            retriggerRestrictTime: settings.retriggerRestrictTime || 1,
+            retriggerRestrictTime: settings.retriggerRestrictTime || 10,
             retriggerRestrictDistance: settings.retriggerRestrictDistance || 1,
             stoppedMovingTimeout: settings.stoppedMovingTimeout || 120
           }
@@ -360,124 +278,29 @@ var self = {
       })
     })
 
-    function geofencesFilteredList (value) {
-      var result = []
-      if (!geofences) return result
-      Object.keys(geofences).forEach(function (geofenceId) {
-        if (geofences[geofenceId].name.toUpperCase().indexOf(value.toUpperCase()) > -1) {
-          result.push({name: geofences[geofenceId].name, geofenceId: geofenceId})
-        }
-      })
-      return result
-    }
-
-    Homey.manager('flow').on('condition.tracker_geofence.geofence.autocomplete', function (callback, value) {
-      callback(null, geofencesFilteredList(value.query))
-    })
-    Homey.manager('flow').on('trigger.tracker_geofence_entered.geofence.autocomplete', function (callback, value) {
-      callback(null, geofencesFilteredList(value.query))
-    })
-    Homey.manager('flow').on('trigger.tracker_geofence_left.geofence.autocomplete', function (callback, value) {
-      callback(null, geofencesFilteredList(value.query))
-    })
-    Homey.manager('flow').on('condition.tracker_moving', function (callback, args) {
-      GpsDebugLog('Flow condition tracker_moving', args)
-      callback(null, trackers[args.device.id].moving === true)
-    })
-    Homey.manager('flow').on('condition.tracker_geofence', function (callback, args) {
-      GpsDebugLog('Flow condition tracker_geofence', args)
-      checkGeofencesForTracker(args.device.id, true)
-      callback(null, trackers[args.device.id].geofences.indexOf(args.geofence.geofenceId) !== -1)
-    })
-    Homey.manager('flow').on('action.get_position', function (callback, args) {
-      GpsDebugLog('Flow action get_position', args)
-      // TODO: force position update for tracker if polling is disabled
-      // TODO: do *all* the update and trigger magic here
-    })
-    Homey.manager('flow').on('trigger.tracker_geofence_entered', function (callback, args, state) {
-      GpsDebugLog('flow trigger tracker_geofence_entered evaluation', {card: args.geofence.geofenceId.toString(), state: state.geofence.toString()})
-      if (args.geofence.geofenceId.toString() === state.geofence.toString()) {
-        callback(null, true)
-      } else {
-        callback(null, false)
-      }
-    })
-    Homey.manager('flow').on('trigger.tracker_geofence_left', function (callback, args, state) {
-      GpsDebugLog('flow trigger tracker_geofence_left evaluation', {card: args.geofence.geofenceId.toString(), state: state.geofence.toString()})
-      if (args.geofence.geofenceId.toString() === state.geofence.toString()) {
-        callback(null, true)
-      } else {
-        callback(null, false)
-      }
-    })
-    Homey.manager('flow').on('action.say_address', function (callback, args, state) {
-      GpsDebugLog('Flow action say_address', args)
-      var trackerId = args.device.id
-
-      function ready (err, trackerId) {
-        if (err) return callback(err)
-        var result = Util.createAddressSpeech(trackers[trackerId].location.place, trackers[trackerId].location.city, trackers[trackerId].name)
-        GpsDebugLog('result for speech', result)
-        Homey.manager('speech-output').say(result, {session: state.session})
-        callback(null, true)
-      }
-
-      // polling is disabled
-      if (tracking == null) {
-        updateTracker(trackerId, ready)
-      } else {
-        ready(null, trackerId)
-      }
-    })
-
-    Homey.manager('speech-input').on('speech', function (speech, callback) {
-      GpsDebugLog('evaluate speech', speech)
-      var settings = Homey.manager('settings').get('gpsaccount')
-      if (!settings || !settings.speech) { return callback(true, null) }
-
-      function ready (err, trackerId) {
-        GpsDebugLog('create speech', {err: err, trackerId: trackerId})
-        if (err) return
-        if (!trackers[trackerId].location) return GpsDebugLog('no location found for tracker on speech handler')
-        speech.say(Util.createAddressSpeech(trackers[trackerId].location.place, trackers[trackerId].location.city, trackers[trackerId].name))
-      }
-
-      if (speech.devices) {
-        speech.devices.forEach(function (device) {
-          if (tracking == null) {
-            updateTracker(device.data.id, ready)
-          } else {
-            ready(null, device.data.id)
-          }
-        })
-        callback(null, true)
-      } else {
-        callback(true, null)
-      }
-    })
-
     Homey.manager('settings').on('set', function (setting) {
-      if (setting === 'gpsaccount') {
-        initiateTracking()
-      }
-      if (setting === 'geofences') {
-        geofences = Homey.manager('settings').get('geofences')
-        checkGeofences()
+      switch (setting) {
+        case 'gpsaccount':
+          initiateTracking()
+          break
+        case 'geofences':
+          geofences = Homey.manager('settings').get(setting)
+          checkGeofences()
+          break
       }
     })
 
-    // delay initiation becouse settings and name device take time
-    setTimeout(initiateTracking, 5000)
-    // delay on callback to prevent nullpointers on capability gets
-    setTimeout(callback, 10000)
+    // delay initiation because getting settings per device take time
+    setTimeout(initiateTracking, 2000)
+    setTimeout(callback, 6000)
   },
   renamed: function (device, name, callback) {
-    GpsDebugLog('rename tracker', [device, name])
+    Util.debugLog('rename tracker', [device, name])
     trackers[device.id].name = name
     callback()
   },
   deleted: function (device) {
-    GpsDebugLog('delete tracker', device)
+    Util.debugLog('delete tracker', device)
     delete trackers[device.id]
     initiateTracking()
   },
@@ -512,14 +335,14 @@ var self = {
       })
     })
     socket.on('add_device', function (device, callback) {
-      GpsDebugLog('pairing: tracker added', device)
+      Util.debugLog('pairing: tracker added', device)
       trackers[device.data.id] = {
         trackerId: device.data.id,
         name: device.name,
         location: {},
         geofences: [],
         settings: {
-          retriggerRestrictTime: 1,
+          retriggerRestrictTime: 10,
           retriggerRestrictDistance: 1,
           stoppedMovingTimeout: 120
         }
@@ -530,12 +353,7 @@ var self = {
     })
   },
   settings: function (device_data, newSettingsObj, oldSettingsObj, changedKeysArr, callback) {
-    GpsDebugLog('settings changed', {device_data: device_data, newSettingsObj: newSettingsObj, changedKeysArr: changedKeysArr})
-
-    // TODO: translate errors
-    if (newSettingsObj.retriggerRestrictTime < 0) { return callback('Negative value') }
-    if (newSettingsObj.retriggerRestrictDistance < 0) { return callback('Negative value') }
-    if (newSettingsObj.stoppedMovingTimeout < 30) { return callback('Timout cannot be smaller than 30 seconds') }
+    Util.debugLog('settings changed', {device_data: device_data, newSettingsObj: newSettingsObj, changedKeysArr: changedKeysArr})
     try {
       changedKeysArr.forEach(function (key) {
         trackers[device_data.id].settings[key] = newSettingsObj[key]
@@ -548,26 +366,27 @@ var self = {
   capabilities: {
     location: {
       get: function (device_data, callback) {
-        GpsDebugLog('capabilities > location > get', device_data)
+        Util.debugLog('capabilities > location > get', device_data)
         if (!trackers[device_data.id] || !trackers[device_data.id].location) return callback('not_ready')
-        var location = {
-          lng: trackers[device_data.id].location.lng || null,
-          lat: trackers[device_data.id].location.lat || null
-        }
-        callback(null, JSON.stringify(location))
+        callback(null, JSON.stringify(trackers[device_data.id].location))
+      }
+    },
+    address: {
+      get: function (device_data, callback) {
+        Util.debugLog('capabilities > address > get', device_data)
+        if (!trackers[device_data.id] || !trackers[device_data.id].location) return callback('not_ready')
+        callback(null, trackers[device_data.id].location.place + ', ' + trackers[device_data.id].location.city)
       }
     },
     moving: {
       get: function (device_data, callback) {
-        GpsDebugLog('capabilities > moving > get', device_data)
+        Util.debugLog('capabilities > moving > get', device_data)
         if (!trackers[device_data.id]) return callback('not_ready')
         callback(null, trackers[device_data.id].moving || false)
       }
     }
   },
-  getTrackers: function (callback) {
-    callback(trackers)
-  }
+  getTrackers: () => { return trackers }
 }
 
 module.exports = self

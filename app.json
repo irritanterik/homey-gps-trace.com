@@ -1,18 +1,18 @@
 {
   "id": "com.gps-trace",
-  "version": "1.0.1",
-  "compatibility": ">=0.10.5",
+  "version": "1.0.2",
+  "compatibility": ">=1.1.0",
   "name": {
     "en": "GPS-Trace",
     "nl": "GPS-Trace"
   },
   "description":{
-     "en":"Track phones and vehicles with GPS-Trace.com",
-     "nl":"Volg je telefoons en auto met GPS-Trace.com"
+    "en":"Track phones and vehicles with GPS-Trace.com",
+    "nl":"Volg je telefoons en auto met GPS-Trace.com"
   },
   "author":{
-     "name":"Erik van Dongen",
-     "website":"http://github.com/irritanterik/"
+    "name":"Erik van Dongen",
+    "website":"http://github.com/irritanterik/"
   },
   "category":[
 		"tools",
@@ -24,8 +24,8 @@
     "homey:manager:speech-output"
   ],
   "images":{
-     "large":"./assets/images/large.jpg",
-     "small":"./assets/images/small.jpg"
+    "large":"./assets/images/large.jpg",
+    "small":"./assets/images/small.jpg"
   },
   "capabilities":{
     "location": {
@@ -38,7 +38,20 @@
         "en": "Lat Lng"
       },
       "desc": {
-        "en": "Location of tracker"
+        "en": "GPS location"
+      },
+      "getable": true,
+      "setable": false
+    },
+    "address": {
+      "type": "string",
+      "title": {
+        "en": "Address",
+        "nl": "Adres"
+      },
+      "desc": {
+        "en": "Address",
+        "nl": "Adres"
       },
       "getable": true,
       "setable": false
@@ -46,7 +59,7 @@
     "moving": {
       "type": "boolean",
       "title": {
-        "en": "Moving",
+        "en": "Movement",
         "nl": "Onderweg"
       },
       "desc": {
@@ -69,7 +82,38 @@
         "small":"drivers/tracker/assets/images/small.jpg"
       },
       "class":"other",
-      "capabilities":["location", "moving"],
+      "capabilities":["location", "address", "moving"],
+      "mobile": {
+        "components": [
+          {
+            "id": "icon",
+            "capabilities": []
+          },
+          {
+            "id": "sensor",
+            "capabilities": ["moving", "address"],
+            "options": {
+              "icons": {
+                "moving": "/assets/gauge_icon.svg",
+                "address": "/assets/location_icon.svg"
+              },
+              "moving": {
+                "noblink": true,
+                "label": {
+                  "true": {
+                    "en": "Moving",
+                    "nl": "In beweging"
+                  },
+                  "false": {
+                    "en": "Not moving",
+                    "nl": "Staat stil"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
       "settings":[
         {
           "type":"group",
@@ -85,7 +129,7 @@
                 "en":"Minimum time between movement triggers (seconds)",
                 "nl":"Minimumtijd tussen beweging triggers (seconden)"
               },
-              "value": 1,
+              "value": 10,
               "attr":{
                 "min": 0,
                 "max": 86400
@@ -205,6 +249,7 @@
               "en":"address",
               "nl":"adres"
             },
+            "type":"string",
             "example":{
               "en":"Piccadilly Circus, London",
               "nl":"Kalverstraat in Amsterdam"
@@ -215,9 +260,8 @@
               "en":"distance",
               "nl":"afstand"
             },
-            "example":{
-              "en":"2500"
-            }
+            "type":"number",
+            "example":2500
           }
         ]
       },{
@@ -240,6 +284,7 @@
               "en":"address",
               "nl":"adres"
             },
+            "type":"string",
             "example":{
               "en":"Piccadilly Circus, London",
               "nl":"Kalverstraat in Amsterdam"
@@ -250,9 +295,8 @@
               "en":"distance",
               "nl":"afstand"
             },
-            "example":{
-              "en":"25.54"
-            }
+            "type":"number",
+            "example":25
           }
         ]
       },{
@@ -275,6 +319,7 @@
               "en":"start address",
               "nl":"beginpunt"
             },
+            "type":"string",
             "example":{
               "en":"Piccadilly Circus, London",
               "nl":"Kalverstraat in Amsterdam"
@@ -285,6 +330,7 @@
               "en":"end address",
               "nl":"bestemming"
             },
+            "type":"string",
             "example":{
               "en":"Piccadilly Circus, London",
               "nl":"Kalverstraat in Amsterdam"
@@ -295,9 +341,8 @@
               "en":"distance travelled",
               "nl":"afgelegde afstand"
             },
-            "example":{
-              "en":"2500.21"
-            }
+            "type":"number",
+            "example":2500
           }
         ]
       },{

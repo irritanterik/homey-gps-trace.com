@@ -53,7 +53,7 @@ select {
 #map {
   height: 100%;
 }
-#map-canvas {
+#map-canvas, #log-canvas {
   height: 400px;
   width: 100%;
   margin: 0px;
@@ -63,23 +63,31 @@ select {
 }
 
 /* Debug log table */
-table#logs tr th.datetime, table#logs tr td.datetime {
-  border-top: 1px solid #ddd;
-  vertical-align: top;
-  padding: 3px;
-  font-size:12px;
-  width:175px;
-}
-table#logs tr th.entry, table#logs tr td.entry {
-  border-top: 1px solid #ddd;
-  vertical-align: top;
-  padding: 3px;
-  font-size:12px;
-}
 fieldset#logs {
   border-top: 1px solid #ddd;
   vertical-align: top;
   padding: 3px;
   overflow-y: scroll;
   max-height: 200px;
+}
+table#logs tr th.datetime,
+table#logs tr td.datetime {
+  border-top: 1px solid #ddd;
+  vertical-align: top;
+  padding: 3px;
+  font-size:12px;
+  width:175px;
+  white-space: nowrap;
+}
+table#logs tr th.entry,
+table#logs tr td.entry {
+  border-top: 1px solid #ddd;
+  vertical-align: top;
+  padding: 3px;
+  font-size:12px;
+  white-space: normal;
+  word-break: break-all;
+}
+code {
+  font-family: monospace;
 }

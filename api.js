@@ -44,8 +44,6 @@ module.exports = [{
   requires_authorization: true,
   role: 'owner',
   fn: function (callback, args) {
-    Homey.manager('drivers').getDriver('tracker').getTrackers(function (response) {
-      callback(null, response)
-    })
+    callback(null, Homey.manager('drivers').getDriver('tracker').getTrackers())
   }
 }]

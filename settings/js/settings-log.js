@@ -28,11 +28,11 @@ function firstLoadLog () {
 
 function addLogEntry (datetime, message, data) {
   var html = '<tr class="logentry"><td class="datetime">' +
-  datetime + '</td><td colspan=2 class="entry">' + message
+  datetime + '</td><td class="entry"><strong>' + message + '</strong>'
   if (data == null) {
     html += '</td></tr>'
   } else {
-    html += '<br>' + JSON.stringify(data) + '</td></tr>'
+    html += '<br><code>' + JSON.stringify(data, ' ') + '</code></td></tr>'
   }
   $('table#logs tr:first').after(html)
 }
