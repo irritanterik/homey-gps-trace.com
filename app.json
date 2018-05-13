@@ -1,6 +1,6 @@
 {
   "id": "com.gps-trace",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "compatibility": ">=1.1.0",
   "name": {
     "en": "GPS-Trace",
@@ -14,6 +14,14 @@
     "name":"Erik van Dongen",
     "website":"http://github.com/irritanterik/"
   },
+  "contributing": {
+   "donate": {
+     "paypal": {
+       "username": "ErikvanDongen",
+       "currency": "EUR"
+     }
+   }
+ },
   "category":[
 		"localization",
     "tools"
@@ -213,20 +221,10 @@
       }
     }
   ],
-  "speechExamples":[
-    {
-      "en": "Dude, where is my car",
-      "nl": "Gast, waar is mijn auto"
-    },
-    {
-      "en": "Where is <tracker name>",
-      "nl": "Waar is <tracker naam>"
-    },
-    {
-      "en": "GPS address <tracker name>",
-      "nl": "GPS adres <tracker naam>"
-    }
-  ],
+  "speechExamples":{
+      "en": ["Dude, where is my car", "Where is <tracker name>", "GPS address <tracker name>"],
+      "nl": ["Gast, waar is mijn auto", "Waar is <tracker naam>", "GPS adres <tracker naam>"]
+  },
   "flow": {
     "triggers":[
       {

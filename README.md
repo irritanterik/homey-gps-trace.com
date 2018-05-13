@@ -4,7 +4,6 @@ Track your car and phones with the free GPS-Trace.com service. You can find a li
 The location of your Homey will be added as a default geofence. Additional geofences can be added.
 
 If you like the app, buy me a beer!  
-[![Paypal beer button](https://www.paypalobjects.com/webstatic/en_US/i/btn/png/blue-pill-paypal-34px.png)](http://PayPal.Me/ErikvanDongen)
 
 ### Speech triggers, will answer with location:
  - Dude, where is my <car name> (NL: Gast waar is mijn <tracker naam>)
